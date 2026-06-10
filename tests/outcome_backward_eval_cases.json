@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "purpose": "Smoke-test whether an outcome-backward-working response follows result-first decomposition, child admission, proof gates, and domain-specialist reasoning.",
+  "cases": [
+    {
+      "id": "earl-grey-cookie",
+      "prompt": "我想要做一个伯爵红茶饼干",
+      "expected_lens": "Baking / pastry product development",
+      "required": [
+        {
+          "id": "usable_mode_shape",
+          "points": 8,
+          "description": "Makes the outcome process visible either through labels or a natural causal opening.",
+          "any": ["Mode", "模式", "Root outcome", "目标结果", "按.*倒推", "你要的不是", "想要的是", "为了做出"],
+          "optional_any": ["Domain ruler", "领域尺子", "Direct child", "父结果需要", "为什么"]
+        },
+        {
+          "id": "root_outcome_not_recipe_only",
+          "points": 10,
+          "description": "Names the target result as a finished Earl Grey cookie, not merely a recipe list.",
+          "all": ["伯爵红茶", "饼干"],
+          "any": ["目标", "结果", "成品", "Outcome", "想要达成"]
+        },
+        {
+          "id": "domain_ruler_baking",
+          "points": 14,
+          "description": "Defines a baking-domain ruler with sensory quality and repeatability.",
+          "any": ["烘焙", "甜点", "食品", "饼干产品", "饼干", "配方", "成品"],
+          "all": ["香"],
+          "optional_any": ["可复现", "稳定", "批次", "一致", "酥", "口感", "不发硬"]
+        },
+        {
+          "id": "relative_domain_knowledge",
+          "points": 16,
+          "description": "Uses pastry/baking mechanics instead of generic planning.",
+          "all": ["黄油", "面粉"],
+          "any": ["佛手柑", "茶叶", "茶包", "研磨", "浸泡", "萃取", "茶香"],
+          "optional_any": ["冷藏", "松弛", "烤温", "烤箱", "边缘上色", "含水", "低筋"]
+        },
+        {
+          "id": "child_admission_logic",
+          "points": 16,
+          "description": "Explains parent-needs-child edges or natural cause-effect choices.",
+          "any": ["父结果", "Parent", "需要这个子结果", "没有.*就", "缺失.*会", "否则", "避免", "不能", "关键控制点", "为了"],
+          "all": ["要"]
+        },
+        {
+          "id": "plain_mechanism_explanation",
+          "points": 10,
+          "description": "Explains baking choices in professional but plain language.",
+          "any": ["为什么", "因为", "关键控制点", "避免", "为了", "这样.*会", "否则"],
+          "all": ["茶叶", "黄油"],
+          "optional_any": ["温度", "烤温", "酥", "硬", "苦", "香"]
+        },
+        {
+          "id": "proof_gate",
+          "points": 10,
+          "description": "Defines proof or acceptance checks for the cookie outcome.",
+          "any": ["证明", "验收", "成功标准", "Proof gate", "判断标准"],
+          "optional_any": ["冷却后", "边缘", "颜色", "试烤", "咬开", "称重", "记录"]
+        },
+        {
+          "id": "iteration_loop",
+          "points": 6,
+          "description": "Turns the weakest gap into a small next iteration instead of stopping at a static answer.",
+          "any": ["小批量", "试烤", "调整", "下一轮", "复盘", "记录", "如果.*下次", "下次"]
+        },
+        {
+          "id": "boundary_uncertainty",
+          "points": 10,
+          "description": "Marks assumptions or asks a narrow question instead of overclaiming exact formula truth.",
+          "any": ["假设", "不确定", "如果", "需要确认", "先按", "可根据"]
+        }
+      ],
+      "forbidden": [
+        {
+          "id": "generic_todo_only",
+          "description": "Generic task list without baking mechanics.",
+          "patterns": ["制定计划[\\s\\S]{0,40}执行计划[\\s\\S]{0,40}复盘总结"]
+        },
+        {
+          "id": "recipe_only_no_outcome",
+          "description": "Plain recipe with no outcome ruler.",
+          "patterns": ["^\\s*材料[：:]?[\\s\\S]{0,120}步骤"]
+        }
+      ]
+    },
+    {
+      "id": "small-account-live-trading",
+      "prompt": "判断下个月小资金实盘是否能做",
+      "expected_lens": "Trading / risk / operations",
+      "required": [
+        {
+          "id": "root_outcome",
+          "points": 12,
+          "description": "Treats feasibility as the target outcome.",
+          "all": ["下个月", "实盘"],
+          "any": ["能不能做", "可行", "目标", "结果"]
+        },
+        {
+          "id": "finance_ruler",
+          "points": 18,
+          "description": "Defines finance/risk proof rather than repo features only.",
+          "any": ["风控", "回撤", "仓位", "止损", "风险", "R倍数"],
+          "optional_any": ["账户", "资金", "亏损上限", "执行纪律"]
+        },
+        {
+          "id": "manual_safety_boundary",
+          "points": 18,
+          "description": "Preserves real-account safety and manual execution boundaries.",
+          "any": ["手动", "不自动下单", "实盘边界", "预检", "人工确认"],
+          "all": ["安全"]
+        },
+        {
+          "id": "proof_loop",
+          "points": 20,
+          "description": "Requires trace, review, and attribution proof.",
+          "any": ["trace", "归因", "复盘", "闭环", "证据", "样本"],
+          "optional_any": ["preflight", "entry", "exit", "decision"]
+        },
+        {
+          "id": "gap_prioritization",
+          "points": 16,
+          "description": "Scores gaps and creates P0/P1 work.",
+          "any": ["P0", "P1", "评分", "距离", "缺口"]
+        },
+        {
+          "id": "child_admission",
+          "points": 16,
+          "description": "Uses parent-needs-child logic.",
+          "any": ["没有.*就", "缺失.*会", "父结果", "需要这个子结果"]
+        }
+      ],
+      "forbidden": [
+        {
+          "id": "feature_inventory_only",
+          "description": "Only lists modules/features with no trading proof.",
+          "patterns": ["模块列表", "文件清单"]
+        }
+      ]
+    },
+    {
+      "id": "back-neutral-posture-recursive-depth",
+      "prompt": "我锻炼练背怎么练，我想恢复中立位体态",
+      "expected_lens": "Exercise rehab / posture / strength training",
+      "required": [
+        {
+          "id": "root_outcome",
+          "points": 12,
+          "description": "Names neutral posture restoration as the target result, not just a back workout.",
+          "all": ["中立位", "体态"],
+          "any": ["目标", "结果", "Root", "恢复"]
+        },
+        {
+          "id": "domain_ruler",
+          "points": 14,
+          "description": "Defines a rehab/strength ruler for neutral posture.",
+          "any": ["运动康复", "力量训练", "训练", "康复", "姿势"],
+          "optional_any": ["疼痛", "麻木", "代偿", "24 小时", "稳定"]
+        },
+        {
+          "id": "recursive_depth_visible",
+          "points": 22,
+          "description": "Shows recursive depth beyond one direct-child layer.",
+          "any": ["1\\.1", "2\\.1", "3\\.1", "第 3 层", "Layer 3", "L3"],
+          "optional_any": ["4 层", "第 4 层", "Layer 4", "L4", "推.*层"]
+        },
+        {
+          "id": "reenter_child_as_parent",
+          "points": 16,
+          "description": "Explicitly treats a child result as a new parent result.",
+          "any": ["把.*当成新的父", "作为新的父结果", "新的父结果", "继续往下推", "子结果.*父结果"]
+        },
+        {
+          "id": "multiple_branches_expanded",
+          "points": 16,
+          "description": "Expands more than one first-level child branch, not just a single chain.",
+          "any": ["1\\.1[\\s\\S]*2\\.1", "2\\.1[\\s\\S]*3\\.1", "中立位[\\s\\S]*胸椎[\\s\\S]*肩胛"]
+        },
+        {
+          "id": "child_admission_each_edge",
+          "points": 14,
+          "description": "Explains why parent needs child and what fails if absent.",
+          "all": ["缺了"],
+          "any": ["父结果需要", "为什么.*需要", "没有.*就", "会.*代偿", "会.*失败"]
+        },
+        {
+          "id": "proof_or_action_leaf",
+          "points": 6,
+          "description": "Connects leaves to exercise choices or proof checks.",
+          "all": ["动作"],
+          "any": ["验证", "证明", "验收", "检查", "判断"]
+        }
+      ],
+      "forbidden": [
+        {
+          "id": "one_level_only",
+          "description": "Only lists first-level child results in a flat table.",
+          "patterns": ["\\|\\s*1\\.\\s*[^\\n]+\\|[\\s\\S]*\\|\\s*2\\.\\s*[^\\n]+\\|[\\s\\S]*\\|\\s*3\\.\\s*[^\\n]+\\|"]
+        }
+      ]
+    },
+    {
+      "id": "reduce-api-500-rate",
+      "prompt": "把后端接口的 500 错误率降到 1% 以下",
+      "expected_lens": "SRE / backend reliability",
+      "required": [
+        {
+          "id": "slo_outcome",
+          "points": 15,
+          "description": "Defines the reliability target as an observable outcome.",
+          "all": ["500", "1%"],
+          "any": ["错误率", "SLO", "成功率", "目标"]
+        },
+        {
+          "id": "ops_domain_knowledge",
+          "points": 20,
+          "description": "Uses reliability mechanics.",
+          "any": ["日志", "指标", "trace", "告警", "错误预算", "回滚", "超时", "重试"],
+          "optional_any": ["分位", "容量", "依赖", "降级"]
+        },
+        {
+          "id": "causal_chain",
+          "points": 20,
+          "description": "Moves from symptom to cause to proof.",
+          "any": ["根因", "调用链", "依赖", "数据库", "异常"],
+          "all": ["证明"]
+        },
+        {
+          "id": "child_admission",
+          "points": 20,
+          "description": "Explains necessary children.",
+          "any": ["没有.*就", "缺失.*会", "父结果", "需要这个子结果"]
+        },
+        {
+          "id": "verification",
+          "points": 25,
+          "description": "Requires measurement after change.",
+          "any": ["验证", "回归", "压测", "监控", "对比", "发布后"]
+        }
+      ],
+      "forbidden": []
+    },
+    {
+      "id": "child-english-speaking-app",
+      "prompt": "做一个给小学生用的英语口语练习 App",
+      "expected_lens": "Education / child UX / language learning",
+      "required": [
+        {
+          "id": "learning_outcome",
+          "points": 16,
+          "description": "Defines learning improvement as the outcome.",
+          "all": ["英语", "口语"],
+          "any": ["学习结果", "表达能力", "发音", "流利度", "目标"]
+        },
+        {
+          "id": "education_domain_knowledge",
+          "points": 20,
+          "description": "Uses language-learning mechanics.",
+          "any": ["跟读", "反馈", "纠音", "复现", "间隔", "情景对话", "输入", "输出"],
+          "optional_any": ["CEFR", "音素", "句型", "词汇"]
+        },
+        {
+          "id": "child_safety_and_ux",
+          "points": 20,
+          "description": "Accounts for child safety and age-appropriate UX.",
+          "any": ["儿童", "小学生", "隐私", "家长", "安全", "年龄"]
+        },
+        {
+          "id": "proof_gate",
+          "points": 20,
+          "description": "Defines measurable learning proof.",
+          "any": ["测评", "录音", "评分", "通过率", "前后对比", "证明"]
+        },
+        {
+          "id": "child_admission",
+          "points": 24,
+          "description": "Uses parent-needs-child logic.",
+          "any": ["没有.*就", "缺失.*会", "父结果", "需要这个子结果"]
+        }
+      ],
+      "forbidden": []
+    }
+  ]
+}

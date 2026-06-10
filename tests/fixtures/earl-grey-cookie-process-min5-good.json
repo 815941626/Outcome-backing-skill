@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.1",
+  "mode": "focused",
+  "user_request": "我想做伯爵红茶饼干，要怎么做？",
+  "root_framing": {
+    "raw_user_ask": "我想做伯爵红茶饼干，要怎么做？",
+    "selected_root_outcome": "做出香气清楚、酥松、不过甜不过苦、能复现的伯爵红茶饼干",
+    "root_admission": "用户真正要的不是一份任意配方，而是能做出合格伯爵红茶饼干的结果。",
+    "domain_fit": "这是烘焙成品问题，结果必须用香气、口感、成熟度和复现性判断。",
+    "proof_standard_reason": "证明标准覆盖茶香、酥松、颜色成熟和下一批复现，能验证 root 是否成立。",
+    "boundary": "不把目标缩成列食材或泛泛教程；不把旧例子、旧树或个人偏好当成本次 root。",
+    "misread_risk": "可能误读成普通黄油饼干配方，导致忽略伯爵茶香和苦涩控制。 ",
+    "clarification_needed": false,
+    "clarification_question": ""
+  },
+  "root_outcome": "做出香气清楚、酥松、不过甜不过苦、能复现的伯爵红茶饼干",
+  "domain": "Baking / pastry product development",
+  "domain_ruler": "成品用茶香、酥松口感、形状稳定、成熟度和可复现性判断，而不是只看配方是否完整。",
+  "depth_target": 3,
+  "explicit_depth_requested": false,
+  "width_policy": {
+    "min_children_per_parent": 5,
+    "max_children_per_parent": 5,
+    "max_total_nodes": 80,
+    "under_min_strategy": "add_unresolved_slots",
+    "overflow_strategy": "expand_weakest_branches_first"
+  },
+  "proof_standard": [
+    "冷却后闻得到伯爵红茶和佛手柑香。",
+    "入口酥松，不硬、不粉散。",
+    "边缘浅金色，中心熟透。",
+    "下一批可以按克重和检查点复现。"
+  ],
+  "nodes": [
+    {"id": "root", "layer": 1, "result": "做出香气清楚、酥松、不过甜不过苦、能复现的伯爵红茶饼干", "parent_id": null, "is_leaf": false, "proof_check": "成品冷却后通过香气、口感、颜色和复现记录验收。"},
+    {"id": "aroma-clear", "layer": 2, "result": "伯爵茶香清楚且不苦涩", "parent_id": "root", "is_leaf": false, "proof_check": "入口能尝到红茶和佛手柑香，没有粗茶渣苦味。"},
+    {"id": "texture-short", "layer": 2, "result": "口感酥松不硬", "parent_id": "root", "is_leaf": false, "proof_check": "饼干能轻松咬断，断面细，不卡牙。"},
+    {"id": "shape-stable", "layer": 2, "result": "形状稳定且烤熟", "parent_id": "root", "is_leaf": false, "proof_check": "切片厚度接近，烤后不严重摊开，中心不生。"},
+    {"id": "sweetness-balanced", "layer": 2, "result": "甜度和盐度不压茶香", "parent_id": "root", "is_leaf": true, "leaf_reason": "deferred-for-rerun: this sibling is valid but not expanded because the readability budget prioritizes aroma, texture, and shape.", "proof_check": "下一轮可把甜度平衡作为新根继续推因。", "defer_reason": "readability budget", "rerun_prompt": "Rerun outcome-backward-working with root outcome: 甜度和盐度不压茶香"},
+    {"id": "repeatable-process", "layer": 2, "result": "配方可执行可复现", "parent_id": "root", "is_leaf": true, "leaf_reason": "deferred-for-rerun: this sibling is valid but not expanded because the readability budget prioritizes product mechanics first.", "proof_check": "下一轮可把可复现流程作为新根继续推因。", "defer_reason": "readability budget", "rerun_prompt": "Rerun outcome-backward-working with root outcome: 配方可执行可复现"},
+
+    {"id": "tea-fine", "layer": 3, "result": "茶叶足够细", "parent_id": "aroma-clear", "is_leaf": true, "leaf_reason": "directly actionable leaf: grind or use tea-bag dust.", "proof_check": "拌入后看不到大硬梗，入口不刮。"},
+    {"id": "tea-fat-carrier", "layer": 3, "result": "茶香进入脂肪和糖", "parent_id": "aroma-clear", "is_leaf": true, "leaf_reason": "directly actionable leaf: rub tea with sugar and cream with butter.", "proof_check": "烤前面团已有茶香，烤后香气不空。"},
+    {"id": "bergamot-supported", "layer": 3, "result": "佛手柑香被柑橘皮或香草轻托住", "parent_id": "aroma-clear", "is_leaf": true, "leaf_reason": "directly actionable leaf: add tiny citrus zest or vanilla only if needed.", "proof_check": "有清亮尾香，不像香精味。"},
+    {"id": "tea-dose-controlled", "layer": 3, "result": "茶量控制在香而不苦的范围", "parent_id": "aroma-clear", "is_leaf": true, "leaf_reason": "directly actionable leaf: use 3-4.5g tea for this batch size.", "proof_check": "冷却后茶味明显但不涩。"},
+    {"id": "bake-not-overbrown", "layer": 3, "result": "烘烤不过度上色", "parent_id": "aroma-clear", "is_leaf": true, "leaf_reason": "directly actionable leaf: stop at pale-golden edges.", "proof_check": "边缘浅金色，没有焦茶苦味。"},
+
+    {"id": "low-protein-flour", "layer": 3, "result": "低筋面粉降低筋度", "parent_id": "texture-short", "is_leaf": true, "leaf_reason": "directly actionable leaf: choose cake flour or low-protein flour.", "proof_check": "成品不韧。"},
+    {"id": "powdered-sugar", "layer": 3, "result": "糖粉提供细腻短酥结构", "parent_id": "texture-short", "is_leaf": true, "leaf_reason": "directly actionable leaf: use powdered sugar rather than coarse sugar.", "proof_check": "口感细，不砂。"},
+    {"id": "butter-ratio", "layer": 3, "result": "黄油比例足够形成短酥", "parent_id": "texture-short", "is_leaf": true, "leaf_reason": "directly actionable leaf: keep butter high enough for shortbread texture.", "proof_check": "饼干能酥断，不干硬。"},
+    {"id": "no-overmix", "layer": 3, "result": "面粉加入后不过度搅拌", "parent_id": "texture-short", "is_leaf": true, "leaf_reason": "directly actionable leaf: stop once no dry flour remains.", "proof_check": "面团不被揉到光滑起筋。"},
+    {"id": "starch-buffer", "layer": 3, "result": "少量淀粉缓冲硬度", "parent_id": "texture-short", "is_leaf": true, "leaf_reason": "directly actionable leaf: add a small amount of cornstarch if needed.", "proof_check": "口感更松，不粉散。"},
+
+    {"id": "chill-dough", "layer": 3, "result": "切片前面团冷藏定型", "parent_id": "shape-stable", "is_leaf": true, "leaf_reason": "directly actionable leaf: chill the log before slicing.", "proof_check": "切片边缘整齐，不粘刀。"},
+    {"id": "uniform-thickness", "layer": 3, "result": "厚度统一", "parent_id": "shape-stable", "is_leaf": true, "leaf_reason": "directly actionable leaf: slice 6-7mm thick.", "proof_check": "同盘成熟度一致。"},
+    {"id": "oven-preheated", "layer": 3, "result": "烤箱充分预热", "parent_id": "shape-stable", "is_leaf": true, "leaf_reason": "directly actionable leaf: preheat before baking.", "proof_check": "进炉后温度不大幅下跌。"},
+    {"id": "moderate-temperature", "layer": 3, "result": "烤温适中", "parent_id": "shape-stable", "is_leaf": true, "leaf_reason": "directly actionable leaf: use about 165C for shortbread slices.", "proof_check": "边缘上色但中心熟。"},
+    {"id": "cool-before-moving", "layer": 3, "result": "出炉后先定型再移动", "parent_id": "shape-stable", "is_leaf": true, "leaf_reason": "directly actionable leaf: rest on tray before rack.", "proof_check": "热饼干不碎裂。"}
+  ],
+  "edges": [
+    {"parent_id": "root", "child_id": "aroma-clear", "parent_needs_child": "伯爵红茶饼干首先需要茶香成立，否则目标产品不成立。", "failure_if_absent": "缺了会变成普通黄油饼干，甚至只有茶渣苦味。", "proof_or_action": "控制茶末细度、茶量和香气载体。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "root", "child_id": "texture-short", "parent_needs_child": "合格饼干需要酥松口感，否则不像短酥类饼干。", "failure_if_absent": "缺了会发硬、发韧或粉散。", "proof_or_action": "控制面粉筋度、黄油、糖粉和搅拌。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "root", "child_id": "shape-stable", "parent_needs_child": "成品需要形状和成熟度稳定，才能切、拿、保存。", "failure_if_absent": "缺了会摊开、裂碎或中心没熟。", "proof_or_action": "冷藏定型、统一厚度、控制烤温。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "root", "child_id": "sweetness-balanced", "parent_needs_child": "甜盐平衡影响茶香是否清楚。", "failure_if_absent": "缺了会甜味压茶，或茶味显苦。", "proof_or_action": "deferred-for-rerun: use this child as the next root if taste balance is the focus.", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "root", "child_id": "repeatable-process", "parent_needs_child": "复现性让配方能稳定成功。", "failure_if_absent": "缺了只能凭感觉，失败后无法修正。", "proof_or_action": "deferred-for-rerun: use this child as the next root if workflow reliability is the focus.", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+
+    {"parent_id": "aroma-clear", "child_id": "tea-fine", "parent_needs_child": "茶香清楚需要茶叶均匀释放，细茶末更容易分布。", "failure_if_absent": "缺了会有粗硬茶渣和局部苦味。", "proof_or_action": "用茶包茶末或研磨散茶。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "aroma-clear", "child_id": "tea-fat-carrier", "parent_needs_child": "伯爵香气需要脂肪和糖承载，烤后才明显。", "failure_if_absent": "缺了会烤前有味、烤后香气弱。", "proof_or_action": "茶末先和糖搓匀，再打入黄油。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "aroma-clear", "child_id": "bergamot-supported", "parent_needs_child": "伯爵的识别点是红茶加佛手柑，清亮尾香需要被托住。", "failure_if_absent": "缺了会茶味钝，像普通红茶饼干。", "proof_or_action": "少量柑橘皮或香草辅助，不喧宾夺主。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "aroma-clear", "child_id": "tea-dose-controlled", "parent_needs_child": "茶香清楚需要足量茶，但超过范围会苦涩。", "failure_if_absent": "缺了会香气不足或茶味发苦。", "proof_or_action": "本批控制在 3-4.5g。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "aroma-clear", "child_id": "bake-not-overbrown", "parent_needs_child": "茶香不苦需要避免过度烘烤。", "failure_if_absent": "缺了会焦香盖过茶香并带苦味。", "proof_or_action": "边缘浅金色就出炉。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+
+    {"parent_id": "texture-short", "child_id": "low-protein-flour", "parent_needs_child": "酥松需要低筋度结构。", "failure_if_absent": "缺了会形成更多筋度，成品发韧不酥。", "proof_or_action": "使用低筋面粉。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "texture-short", "child_id": "powdered-sugar", "parent_needs_child": "酥松细腻需要糖颗粒足够细。", "failure_if_absent": "缺了会有颗粒感或扩展不稳。", "proof_or_action": "使用糖粉。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "texture-short", "child_id": "butter-ratio", "parent_needs_child": "短酥口感需要黄油阻断面筋并提供酥断。", "failure_if_absent": "缺了会偏干偏硬，咬断感不干净。", "proof_or_action": "维持足够黄油比例。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "texture-short", "child_id": "no-overmix", "parent_needs_child": "酥松需要减少面筋生成。", "failure_if_absent": "缺了会越拌越硬。", "proof_or_action": "无干粉即停止。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "texture-short", "child_id": "starch-buffer", "parent_needs_child": "少量淀粉能进一步降低硬度。", "failure_if_absent": "缺了可能偏硬或不够松。", "proof_or_action": "加入少量玉米淀粉。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+
+    {"parent_id": "shape-stable", "child_id": "chill-dough", "parent_needs_child": "形状稳定需要黄油在进炉前保持结构。", "failure_if_absent": "缺了会摊开或不好切。", "proof_or_action": "切片前冷藏定型。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "shape-stable", "child_id": "uniform-thickness", "parent_needs_child": "烤熟一致需要厚度一致。", "failure_if_absent": "缺了会有的焦、有的生。", "proof_or_action": "切 6-7mm。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "shape-stable", "child_id": "oven-preheated", "parent_needs_child": "成熟稳定需要入炉温度稳定。", "failure_if_absent": "缺了会先融化后定型，形状差。", "proof_or_action": "充分预热烤箱。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "shape-stable", "child_id": "moderate-temperature", "parent_needs_child": "熟透且不焦需要适中烤温。", "failure_if_absent": "缺了会外焦内生或烤太干。", "proof_or_action": "约 165C 烘烤。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "shape-stable", "child_id": "cool-before-moving", "parent_needs_child": "热饼干脆弱，需要先定型再移动。", "failure_if_absent": "缺了会在转移时碎裂，形状验收失败。", "proof_or_action": "出炉后烤盘静置 5 分钟。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}}
+  ],
+  "weakest_gap": "香气、酥松和形状是本轮最值得展开的三个父结果；甜度和复现流程留给下一轮重跑。",
+  "next_action": "先按这 3 层树做配方；如果要继续细推，就把一个 deferred-for-rerun 节点作为新的 root outcome 重跑 skill。",
+  "residual_risk": "不同茶包浓度、烤箱实际温度、黄油含水量会影响结果，需要小批试烤微调。"
+}

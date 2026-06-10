@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/skills/outcome-backward-working/outcome-process.schema.json",
+  "title": "Outcome Backward Process",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mode",
+    "user_request",
+    "root_framing",
+    "root_outcome",
+    "domain",
+    "domain_ruler",
+    "depth_target",
+    "width_policy",
+    "proof_standard",
+    "nodes",
+    "edges",
+    "next_action",
+    "residual_risk"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.1"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["compact", "focused", "full_tree", "custom"]
+    },
+    "user_request": {
+      "type": "string",
+      "minLength": 1
+    },
+    "root_framing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_user_ask",
+        "selected_root_outcome",
+        "root_admission",
+        "domain_fit",
+        "proof_standard_reason",
+        "boundary",
+        "misread_risk",
+        "clarification_needed",
+        "clarification_question"
+      ],
+      "properties": {
+        "raw_user_ask": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selected_root_outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root_admission": {
+          "type": "string",
+          "minLength": 8
+        },
+        "domain_fit": {
+          "type": "string",
+          "minLength": 8
+        },
+        "proof_standard_reason": {
+          "type": "string",
+          "minLength": 8
+        },
+        "boundary": {
+          "type": "string",
+          "minLength": 8
+        },
+        "misread_risk": {
+          "type": "string",
+          "minLength": 8
+        },
+        "clarification_needed": {
+          "type": "boolean"
+        },
+        "clarification_question": {
+          "type": "string"
+        }
+      }
+    },
+    "problem_solving": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "problem_mode",
+        "observed_symptom",
+        "desired_normal_result",
+        "problem_statement",
+        "evidence_seen",
+        "likely_missing_child_result",
+        "hypothesis_vs_evidence",
+        "repair_strategy",
+        "verification_check"
+      ],
+      "properties": {
+        "problem_mode": {
+          "type": "boolean"
+        },
+        "observed_symptom": {
+          "type": "string"
+        },
+        "desired_normal_result": {
+          "type": "string"
+        },
+        "problem_statement": {
+          "type": "string"
+        },
+        "evidence_seen": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "likely_missing_child_result": {
+          "type": "string"
+        },
+        "hypothesis_vs_evidence": {
+          "type": "string"
+        },
+        "repair_strategy": {
+          "type": "string"
+        },
+        "verification_check": {
+          "type": "string"
+        }
+      }
+    },
+    "root_outcome": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domain_ruler": {
+      "type": "string",
+      "minLength": 1
+    },
+    "depth_target": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 12
+    },
+    "explicit_depth_requested": {
+      "type": "boolean",
+      "default": false
+    },
+    "width_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min_children_per_parent",
+        "max_children_per_parent",
+        "max_total_nodes",
+        "under_min_strategy",
+        "overflow_strategy"
+      ],
+      "properties": {
+        "min_children_per_parent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "default": 5
+        },
+        "max_children_per_parent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_total_nodes": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 200,
+          "default": 80
+        },
+        "under_min_strategy": {
+          "type": "string",
+          "enum": ["add_unresolved_slots", "ask_user", "mark_deferred"]
+        },
+        "overflow_strategy": {
+          "type": "string",
+          "enum": ["expand_weakest_branches_first", "ask_user", "defer_siblings"]
+        }
+      }
+    },
+    "proof_standard": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "weakest_gap": {
+      "type": "string"
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "residual_risk": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "layer", "result", "parent_id", "is_leaf", "proof_check"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$"
+        },
+        "layer": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "result": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_leaf": {
+          "type": "boolean"
+        },
+        "leaf_reason": {
+          "type": "string"
+        },
+        "proof_check": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain_mechanism": {
+          "type": "string"
+        },
+        "owner_lens": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2", "P3"]
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "is_unresolved_slot": {
+          "type": "boolean"
+        },
+        "defer_reason": {
+          "type": "string"
+        },
+        "rerun_prompt": {
+          "type": "string"
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_id",
+        "child_id",
+        "parent_needs_child",
+        "failure_if_absent",
+        "child_admission",
+        "proof_or_action"
+      ],
+      "properties": {
+        "parent_id": {
+          "type": "string"
+        },
+        "child_id": {
+          "type": "string"
+        },
+        "edge_kind": {
+          "type": "string",
+          "enum": ["causal_child", "unresolved_slot"],
+          "default": "causal_child"
+        },
+        "parent_needs_child": {
+          "type": "string",
+          "minLength": 8
+        },
+        "failure_if_absent": {
+          "type": "string",
+          "minLength": 8
+        },
+        "proof_or_action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "child_admission": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "direct_condition",
+            "mechanism_not_label",
+            "proof_named"
+          ],
+          "properties": {
+            "direct_condition": {
+              "type": "boolean"
+            },
+            "mechanism_not_label": {
+              "type": "boolean"
+            },
+            "proof_named": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

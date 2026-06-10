@@ -1,0 +1,1679 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>系统在总览页有有效建议</title>
+  <style>
+    :root {
+      --bg: #f6f7f2;
+      --panel: #fffdf7;
+      --ink: #17202a;
+      --muted: #627083;
+      --line: #bcc7d4;
+      --target: #0f766e;
+      --ruler: #2f63b7;
+      --exists: #2f7d32;
+      --partial: #b45f06;
+      --weak: #b42318;
+      --missing: #7a3db8;
+      --risk: #bd1550;
+      --done: #59667a;
+      --work-active: #2563eb;
+      --work-done: #16803c;
+      --work-next: #c76f00;
+      --work-pending: #64748b;
+      --work-blocked: #c02626;
+      --work-deferred: #6b7280;
+      --shadow: 0 14px 28px rgba(23, 32, 42, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+      overflow: hidden;
+    }
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      min-height: 640px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 18px 12px;
+      background: #fff9ed;
+      border-bottom: 1px solid #e6dcc8;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 1080px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(66px, auto));
+      gap: 8px;
+    }
+    .stat {
+      border: 1px solid #e1d7c4;
+      background: rgba(255,255,255,0.72);
+      border-radius: 8px;
+      padding: 7px 9px;
+      min-width: 68px;
+    }
+    .stat b {
+      display: block;
+      font-size: 17px;
+      line-height: 1.1;
+    }
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      min-height: 0;
+    }
+    .map-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      background:
+        linear-gradient(rgba(42, 51, 61, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42, 51, 61, 0.045) 1px, transparent 1px),
+        #f8f5ec;
+      background-size: 48px 48px;
+    }
+    .toolbar {
+      position: absolute;
+      z-index: 5;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      pointer-events: none;
+    }
+    .toolbar > * {
+      pointer-events: auto;
+    }
+    input, select, button {
+      height: 34px;
+      border: 1px solid #c9c1b1;
+      background: rgba(255,255,255,0.92);
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 0 10px;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(23, 32, 42, 0.08);
+    }
+    input {
+      min-width: 280px;
+      flex: 1 1 280px;
+      max-width: 520px;
+    }
+    button {
+      cursor: pointer;
+    }
+    button:hover {
+      border-color: #796f5f;
+    }
+    body.edit-mode .map-wrap {
+      outline: 2px solid rgba(37, 99, 235, 0.28);
+      outline-offset: -2px;
+    }
+    .edit-only {
+      display: none;
+    }
+    body.edit-mode .edit-only {
+      display: inline-flex;
+      align-items: center;
+    }
+    .save-status {
+      min-height: 24px;
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border: 1px solid #d6dee9;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      color: #526070;
+      font-size: 12px;
+      box-shadow: 0 4px 12px rgba(23, 32, 42, 0.08);
+    }
+    body.edit-mode #edit-toggle {
+      background: #17202a;
+      border-color: #17202a;
+      color: #fffdf7;
+    }
+    body.edit-mode .map-node {
+      cursor: move;
+    }
+    body.edit-mode .map-node .node-card {
+      stroke-dasharray: 5 3;
+    }
+    #map {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      touch-action: none;
+    }
+    #map.dragging {
+      cursor: grabbing;
+    }
+    .band {
+      fill: rgba(255, 255, 255, 0.34);
+      stroke: rgba(100, 116, 139, 0.12);
+    }
+    .band-label {
+      fill: #7b6e59;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .link {
+      fill: none;
+      stroke: #94a3b8;
+      stroke-width: 2.2;
+      opacity: 0.72;
+    }
+    .link.p0 { stroke: #d9483b; stroke-width: 3.2; }
+    .link.p1 { stroke: #c98122; stroke-width: 2.7; }
+    .link.dimmed { opacity: 0.12; }
+    .link.highlight { opacity: 1; stroke-width: 4.2; }
+    .map-node {
+      cursor: pointer;
+      transition: opacity 120ms ease;
+    }
+    .map-node.dimmed {
+      opacity: 0.22;
+    }
+    .node-card {
+      fill: #fffefa;
+      stroke: #cbd5e1;
+      stroke-width: 1.2;
+      filter: drop-shadow(0 5px 10px rgba(23, 32, 42, 0.12));
+    }
+    .map-node.selected .node-card {
+      stroke: #111827;
+      stroke-width: 2.4;
+    }
+    .map-node.work-active .node-card {
+      stroke: var(--work-active);
+      stroke-width: 2.6;
+      stroke-dasharray: 7 4;
+    }
+    .map-node.work-done .node-card {
+      stroke: var(--work-done);
+      stroke-width: 2.1;
+    }
+    .map-node.work-next .node-card {
+      stroke: var(--work-next);
+      stroke-width: 2.1;
+    }
+    .map-node.work-blocked .node-card {
+      stroke: var(--work-blocked);
+      stroke-width: 2.4;
+    }
+    .status-strip { width: 8px; }
+    .status-target { fill: var(--target); }
+    .status-ruler { fill: var(--ruler); }
+    .status-exists { fill: var(--exists); }
+    .status-partial { fill: var(--partial); }
+    .status-weak { fill: var(--weak); }
+    .status-missing { fill: var(--missing); }
+    .status-risk { fill: var(--risk); }
+    .status-done { fill: var(--done); }
+    .node-title {
+      fill: #17202a;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .node-summary {
+      fill: #5f6f82;
+      font-size: 11px;
+    }
+    .pill-text {
+      fill: #334155;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .pill-bg {
+      fill: #eef2f7;
+      stroke: #d6dee9;
+    }
+    .work-dot {
+      stroke: #fffefa;
+      stroke-width: 2;
+    }
+    .work-active-fill { fill: var(--work-active); }
+    .work-done-fill { fill: var(--work-done); }
+    .work-next-fill { fill: var(--work-next); }
+    .work-pending-fill { fill: var(--work-pending); }
+    .work-blocked-fill { fill: var(--work-blocked); }
+    .work-deferred-fill { fill: var(--work-deferred); }
+    .score-ring {
+      fill: #fffefa;
+      stroke: #cbd5e1;
+      stroke-width: 1.3;
+    }
+    .score-text {
+      fill: #111827;
+      font-size: 12px;
+      font-weight: 800;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .minimap {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      width: 220px;
+      height: 142px;
+      border: 1px solid #c9c1b1;
+      background: rgba(255, 253, 247, 0.9);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .minimap-title {
+      position: absolute;
+      top: 7px;
+      left: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 1;
+    }
+    #mini {
+      width: 100%;
+      height: 100%;
+    }
+    .inspector {
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background: #fffdf7;
+      border-left: 1px solid #e1d7c4;
+      display: flex;
+      flex-direction: column;
+    }
+    .inspector-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      padding: 12px 12px 8px;
+      border-bottom: 1px solid #e1d7c4;
+      background: #fffdf7;
+      flex: 0 0 auto;
+    }
+    .inspector-tab {
+      height: 31px;
+      padding: 0 6px;
+      border-radius: 7px;
+      box-shadow: none;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .inspector-tab.active {
+      background: #17202a;
+      border-color: #17202a;
+      color: #fffdf7;
+    }
+    .inspector-body {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px;
+      flex: 1 1 auto;
+    }
+    .inspector-panel[hidden] {
+      display: none;
+    }
+    .panel {
+      border: 1px solid #e3dac8;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fffefa;
+      box-shadow: 0 6px 14px rgba(23, 32, 42, 0.07);
+      margin-bottom: 12px;
+    }
+    .panel h2 {
+      margin: 0 0 9px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+    .panel h3 {
+      margin: 13px 0 5px;
+      color: #526070;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .panel p, .panel li {
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .panel p {
+      margin: 0;
+    }
+    .panel ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #334155;
+      border: 1px solid #d6dee9;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .p0 { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .p1 { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+    .p2 { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+    .p3 { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
+    .work-active-badge { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+    .work-done-badge { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .work-next-badge { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .work-pending-badge { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
+    .work-blocked-badge { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .work-deferred-badge { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
+    .queue-item {
+      border-top: 1px solid #ece3d4;
+      padding: 9px 0;
+    }
+    .queue-item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .queue-item b {
+      display: block;
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .queue-note {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .queue-item .badge {
+      display: inline-flex;
+      width: auto;
+      margin: 0 4px 3px 0;
+      vertical-align: middle;
+    }
+    .queue-item button[data-focus-node] {
+      height: auto;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #17202a;
+      box-shadow: none;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .queue-item button[data-focus-node]:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #344054;
+    }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .editor-form {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #ece3d4;
+    }
+    .editor-form label {
+      display: grid;
+      gap: 4px;
+      color: #526070;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .editor-form input,
+    .editor-form select,
+    .editor-form textarea {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      height: auto;
+      min-height: 32px;
+      box-shadow: none;
+      font: inherit;
+      font-size: 13px;
+    }
+    .editor-form textarea {
+      resize: vertical;
+      min-height: 62px;
+      padding: 8px 10px;
+      line-height: 1.4;
+    }
+    .editor-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 1040px) {
+      body { overflow: auto; }
+      .app { height: auto; min-height: 100vh; }
+      header { grid-template-columns: 1fr; }
+      .workspace { grid-template-columns: 1fr; }
+      .map-wrap { height: 68vh; min-height: 520px; }
+      .inspector { border-left: 0; border-top: 1px solid #e1d7c4; }
+      .inspector-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .minimap { width: 180px; height: 116px; }
+      .stats { grid-template-columns: repeat(2, minmax(66px, auto)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1 id="page-title"></h1>
+        <div id="page-subtitle" class="subtitle"></div>
+      </div>
+      <div id="stats" class="stats"></div>
+    </header>
+    <main class="workspace">
+      <section class="map-wrap">
+        <div class="toolbar">
+          <input id="search" type="search" placeholder="搜索目标、能力、缺口、P0 子任务">
+          <select id="status-filter" aria-label="状态筛选"><option value="all">全部状态</option></select>
+          <select id="work-filter" aria-label="施工状态筛选"><option value="all">全部施工</option></select>
+          <select id="priority-filter" aria-label="优先级筛选">
+            <option value="all">全部优先级</option>
+            <option value="P0">P0</option>
+            <option value="P1">P1</option>
+            <option value="P2">P2</option>
+            <option value="P3">P3</option>
+          </select>
+          <button id="zoom-out" title="缩小">-</button>
+          <button id="zoom-in" title="放大">+</button>
+          <button id="fit" title="全图适配">Fit</button>
+          <button id="reset" title="重置筛选">Reset</button>
+          <button id="edit-toggle" title="开启手动编辑">编辑</button>
+          <button id="add-child" class="edit-only" title="给当前节点新增一个子节点">新增子节点</button>
+          <button id="auto-layout" class="edit-only" title="清除手动坐标并重新自动排布">自动布局</button>
+          <button id="bind-json" class="edit-only" title="授权后自动写回一个 JSON 文件">绑定JSON</button>
+          <button id="export-json" class="edit-only" title="导出当前编辑后的 JSON">导出JSON</button>
+          <button id="discard-draft" class="edit-only" title="删除浏览器本地草稿并恢复内嵌数据">丢弃草稿</button>
+          <span id="save-status" class="save-status">只读</span>
+        </div>
+        <svg id="map" role="img" aria-label="Outcome backward capability map">
+          <g id="viewport">
+            <g id="bands"></g>
+            <g id="links"></g>
+            <g id="nodes"></g>
+          </g>
+        </svg>
+        <div class="minimap">
+          <div class="minimap-title">Overview</div>
+          <svg id="mini"></svg>
+        </div>
+      </section>
+      <aside class="inspector">
+        <nav class="inspector-tabs" aria-label="右侧面板">
+          <button class="inspector-tab active" type="button" data-panel-tab="details">节点</button>
+          <button class="inspector-tab" type="button" data-panel-tab="work">施工</button>
+          <button class="inspector-tab" type="button" data-panel-tab="queue">队列</button>
+          <button class="inspector-tab" type="button" data-panel-tab="coverage">审查</button>
+          <button class="inspector-tab" type="button" data-panel-tab="legend">图例</button>
+        </nav>
+        <div class="inspector-body">
+          <section class="panel inspector-panel" data-panel="details" id="details"></section>
+          <section class="panel inspector-panel" data-panel="work" id="work-board" hidden></section>
+          <section class="panel inspector-panel" data-panel="queue" hidden>
+            <h2>P0-P3 队列</h2>
+            <div id="queue"></div>
+          </section>
+          <section class="panel inspector-panel" data-panel="coverage" hidden>
+            <h2>覆盖审查</h2>
+            <div id="coverage"></div>
+          </section>
+          <section class="panel inspector-panel" data-panel="legend" hidden>
+            <h2>图例</h2>
+            <div id="legend" class="legend"></div>
+          </section>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <script id="outcome-data" type="application/json">{"version": "1.0.0-mechanism-cause-overview-advice", "project": {"name": "AI Quant Trader / Mechanism Cause Outcome Map", "description": "按字面是入口、机制才是因重推：字段只作探针，入树的是让父果成立的机制。", "generatedAt": "2026-05-11T20:38:58+08:00", "sourcePath": "C:\\Users\\At\\.codex\\skills\\outcome-backward-working\\outcome-tree\\examples\\aiqt-overview-advice.json"}, "generationMode": {"cleanRoom": true, "domainRulerFirst": true, "localParentOnly": true, "memoryClean": true, "mechanismNotField": true, "doesNotReadPreviousTree": true, "rule": "Literal text is an entry, decomposition is a probe, mechanism is the cause."}, "goal": {"title": "系统在总览页有有效建议", "summary": "总览第一屏展示一条压缩后仍然有效的金融建议。"}, "mapLayers": ["最终结果", "直接子因：压缩建议/第一屏交付/安全证明", "压缩建议组成", "完整建议机制：价格计划/值得做/错后补救", "交易计划机制：动作成立/入场/止损/放弃", "判断机制/处理", "底部数据/追溯/反馈"], "proofGates": ["字面是入口，不是原因；拆解是探针，不是证据；机制才是因。", "每层只问当前父节点要成立需要什么直接子因，不用祖先分类套子节点。", "root 第一层只包含总览压缩建议、第一屏交付、安全证明这三个直接子因。", "压缩建议必须来自完整金融有效建议，不能自造 verdict。", "完整金融建议先需要价格级交易计划、计划值得做、错后补救，而不是平铺字段。", "价格级交易计划再需要当前动作成立、入场/最高追、止损/目标、放弃条件。", "总览第一屏只交付同一条压缩建议，不二次裁判。", "样本不足、证据冲突、数据过期或缺关键价位时必须降级。", "真实账户只读，执行仍需 preflight 和人工确认。"], "coverageReview": [{"lens": "Local parent only", "finding": "旧树会把 root 的领域/可见/证明分类继续套到后代节点，导致跨层串因。", "treeChange": "root 下先放总览压缩建议；完整金融建议移动到压缩建议的来源下面。", "residualRisk": "仍需逐节点用 outcomeback-rethink 审查是否还有错层。"}, {"lens": "Mechanism not field", "finding": "旧树把完整金融建议拆成标的/动作/为什么/把握等字段，像字段表，不像果因树。", "treeChange": "完整建议下改成价格级交易计划、计划值得做、错后补救；为什么现在下沉到当前动作成立下面。", "residualRisk": "仍需继续用 rethink 审查每个机制是否真是最近父节点的直接因。"}, {"lens": "Domain ruler", "finding": "业务果不能偏成产品壳，但产品壳也不能和完整金融建议混成同一层。", "treeChange": "压缩建议作为总览产物，完整金融有效建议作为它的来源子因。", "residualRisk": "仍需用真实代码核对每个金融字段当前是否能产出。"}, {"lens": "Visible acceptance", "finding": "总览第一屏交付只证明压缩建议出现在总览页，不负责证明金融建议本身。", "treeChange": "第一屏节点只保留位置和展示槽位；来源/合同/压缩过程移到压缩建议产物下。", "residualRisk": "页面旧路径是否二次裁判仍需代码验证。"}, {"lens": "Clean target shape", "finding": "模拟样例只描述输出形态，不承载真实行情、价格或胜率。", "treeChange": "全部 targetShape 使用 <placeholder>。", "residualRisk": "真实实现时必须由运行时数据填充并追溯。"}], "nodes": [{"id": "outcome:overview-effective-advice", "title": "结果：总览页有有效建议", "summary": "骑手打开总览页后，第一屏看到一条压缩后仍然有效的金融建议。", "status": "target", "priority": "P0", "localResult": "总览页这个结果成立：用户第一屏看到的是压缩后仍可行动、可放弃、可复盘的建议。", "targetShape": "模拟，不是投资建议：<ticker>｜<action_label>｜<entry_or_trigger> 才做，超过 <max_entry_or_not_applicable> 放弃｜目标/退出 <target_or_exit>，失效 <stop_or_invalidation>｜把握 <probability_or_sample_insufficient>｜错后 <first_repair_action>｜证据 <evidence_compact>｜边界 <manual_preflight_required>。", "score": 38, "workStatus": "active", "ownerLens": "finance/product", "needType": "outcome", "proofGate": "总览页展示的压缩建议必须来自完整有效建议，且压缩后不丢关键行动边界。", "domain": "finance", "domainRuler": "有效建议 = 金融上可行动、可放弃、可复盘、能解释风险和把握的判断。", "domainValidOutput": "总览第一屏压缩建议必须保留 <ticker>、<action>、<price_boundary>、<confidence_or_sample_state>、<repair>、<evidence_compact>、<manual_boundary>。", "existingSupport": ["项目已有总览页、建议中心、部分 overview brief/minimal message 接口。", "本图按 Local Parent Only 重推，每层只服务最近父节点。"], "gaps": ["当前系统是否真的能产出金融上有效的行动建议，需要逐节点用代码和数据核对。", "价格级计划、把握校准、错后补救仍是 P0 弱点。"]}, {"id": "product:overview-compressed-effective-advice", "title": "产物：总览压缩后有效建议", "summary": "总览页真正展示的是完整有效建议的压缩版；它短，但不能丢行动边界。", "status": "partial", "priority": "P0", "localResult": "存在一条可被总览直接展示的压缩后有效建议。", "targetShape": "模拟压缩建议：<ticker>｜<action_label>｜<entry_or_trigger>/<stop_or_invalidation>/<target_or_exit>｜<confidence_or_sample_state>｜<repair>｜<evidence_compact>｜<manual_boundary>。", "parentId": "outcome:overview-effective-advice", "score": 30, "workStatus": "done", "workNote": "已由 advice-center overview_brief 生成 overview_minimal_message_v0，总览第一屏优先读取这条压缩建议。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: overview_brief + overview_minimal_message", "frontend/tabs/overview.js: _attachAdviceCenterOverviewMessages + _getOverviewDisplayAdvice", "backend/tests/test_advice_center.py: overview brief/minimal message contract"], "ownerLens": "finance/product", "needType": "outcome", "directCauseForParent": "没有压缩后有效建议这个产物，root 只能是空页面或长报告入口。", "edgeProof": "父结果说的是总览页有有效建议；直接需要一个能放到总览上的有效建议产物。", "proofGate": "压缩结果不能自造 verdict，不能丢掉价格边界和风险边界。", "domain": "finance", "domainRuler": "压缩后仍有效 = 读起来短，但仍保留动作、价位、把握、错后、证据和人工边界。", "domainValidOutput": "<ticker>；<action_label>；<entry_or_trigger>；<stop_or_invalidation>；<target_or_exit>；<confidence_or_sample_state>；<repair>；<evidence_compact>；<manual_boundary>。"}, {"id": "domain:finance-valid-action-advice", "title": "来源：完整金融有效建议", "summary": "压缩建议必须来自一条完整金融有效建议，而不是总览页自己临时拼判断。", "status": "partial", "priority": "P0", "localResult": "存在一条可被压缩的完整金融行动建议。", "targetShape": "模拟金融建议：<ticker> <action>；<entry_or_trigger> 才行动；超过 <max_entry_or_not_applicable> 不追；跌破/触发 <stop_or_invalidation> 失效；目标/退出 <target_or_exit>；理由 <why_buy_sell_wait>；证据 <evidence_compact>；把握 <probability_or_sample_insufficient>；错后 <first_repair_action>。", "parentId": "source:summary-from-domain-advice", "score": 28, "workStatus": "done", "workNote": "overview_brief 新增 mechanism_chain，明确完整金融建议由价格级计划、值得做判断和错后补救支撑。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: _overview_mechanism_chain", "backend/tests/test_advice_center.py: complete_advice.direct_causes"], "ownerLens": "finance", "needType": "domain_result", "directCauseForParent": "没有完整有效建议，来源节点就只是一个空引用。", "edgeProof": "当前父节点是压缩建议来源；它直接需要一条完整金融有效建议。", "proofGate": "建议必须回答标的、动作、价格、理由、把握、错后、证据和失效条件。", "domain": "finance", "domainRuler": "可行动、可放弃、可复盘，并能解释风险收益和判断把握。", "domainValidOutput": "<ticker>；<buy/sell/wait/avoid>；<entry_or_trigger>；<max_entry>；<stop_or_invalidation>；<target_or_exit>；<why>；<evidence>；<confidence>；<repair>。"}, {"id": "visible:overview-first-screen-delivery", "title": "交付：总览第一屏呈现这条压缩建议", "summary": "压缩建议成立后，必须在总览第一屏被用户直接看到。", "status": "partial", "priority": "P0", "localResult": "总览第一屏展示这条压缩建议。", "targetShape": "模拟第一屏：主标题 <ticker_action>；一句话 <why_now_and_plan>；价位 <entry_stop_target>；把握 <confidence_label>；错后 <repair_line>；边界 <manual_preflight_badge>。", "parentId": "outcome:overview-effective-advice", "score": 42, "workStatus": "done", "workNote": "总览今日行动面板先拉取 advice-center overview-briefs，并用 overview_minimal_message 作为第一屏裁判。", "completedAt": "2026-05-11", "evidence": ["frontend/tabs/overview.js: /advice-center/overview-briefs", "frontend/tabs/overview.js: 今日建议中心裁判"], "ownerLens": "UX", "needType": "visible_acceptance", "directCauseForParent": "压缩建议存在但不在总览第一屏呈现，root 的“总览页有”不成立。", "edgeProof": "当前父节点是总览页结果；它直接需要第一屏承载。", "proofGate": "第一屏必须看到同一条压缩建议，而不是第二套推荐文案。"}, {"id": "proof:safety-trace-reviewable", "title": "证明：建议安全、可追溯、可复盘", "summary": "有效建议不能只看起来像建议，还要知道依据、时效、边界和后验结果。", "status": "partial", "priority": "P0", "localResult": "每条建议能追溯到当时数据，且不会越权执行。", "targetShape": "模拟证明：source_ref=<source_ref>，snapshot_ref=<snapshot_ref>，freshness=<fresh_or_stale>，execution=<manual_preflight_required>，later_review=<review_status_or_pending>。", "parentId": "outcome:overview-effective-advice", "score": 34, "workStatus": "done", "workNote": "overview_brief 保持 review_only/is_executable=false，并携带 trace、freshness、execution_boundary 和 mechanism_chain_version。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: execution_boundary", "backend/tests/test_advice_center.py: review_only/is_executable/mechanism_chain_version"], "ownerLens": "risk/review", "needType": "evidence", "directCauseForParent": "没有安全和追溯，建议可能误导、越权或无法复盘。", "edgeProof": "父结果中的“有效”包含安全和可验证，不只是文本命中。", "proofGate": "真实账户只读；关键输入有 freshness；建议可被冻结后复盘。"}, {"id": "plan:price-level-trade-plan", "title": "计划：价格级交易计划", "summary": "完整金融建议首先要给出用户能行动的价格计划。", "status": "partial", "priority": "P0", "localResult": "存在一份可执行、可放弃、可失效的价格级交易计划。", "targetShape": "模拟计划：subject=<ticker>，action=<action>，entry_or_trigger=<entry_or_trigger>，max_entry=<max_entry_or_not_applicable>，stop_or_invalidation=<stop_or_invalidation>，target_or_exit=<target_or_exit>，abandon_if=<abandon_condition>。", "parentId": "domain:finance-valid-action-advice", "score": 22, "workStatus": "done", "workNote": "mechanism_chain.price_level_trade_plan 把 action_locked、action_validity、entry_rule、exit_rule、abandon_rule 放到同一价格计划下。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: price_level_trade_plan", "backend/tests/test_advice_center.py: entry/stop/target/action_validity assertions"], "ownerLens": "trading", "needType": "outcome", "directCauseForParent": "没有价格级交易计划，完整建议只有观点，不能行动。", "edgeProof": "当前父节点是完整金融有效建议；它直接需要一份可执行计划。", "proofGate": "任何 buy/chase/sell 都必须有价格边界或明确不适用原因。"}, {"id": "judgment:plan-worth-doing", "title": "判断：这笔计划值得做", "summary": "有计划还不够，还要证明风险收益和把握值得执行。", "status": "partial", "priority": "P0", "localResult": "给出 plan_quality、confidence_state、risk_reward_state。", "targetShape": "模拟判断：plan_quality=<worth_doing_or_wait_or_block>，confidence=<calibrated_probability_or_sample_insufficient>，risk_reward=<acceptable_or_unknown_or_bad>。", "parentId": "domain:finance-valid-action-advice", "score": 18, "workStatus": "done", "workNote": "mechanism_chain.plan_worth_doing 会结合动作成立、赔率和概率校准状态；动作阻断或样本不足时降级。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: _overview_plan_worth_status", "backend/tests/test_advice_center.py: blocked/degrade_reason"], "ownerLens": "quant/finance", "needType": "judgment", "directCauseForParent": "没有值得做的判断，价格计划可能只是可执行但不该执行。", "edgeProof": "当前父节点是有效建议；有效不只是能做，还要值得做。", "proofGate": "把握不足、赔率不清或风险收益差时降级。"}, {"id": "domain:repair-if-wrong", "title": "策略：判断错了有补救路径", "summary": "完整金融建议必须预先说明错了第一步怎么处理。", "status": "partial", "priority": "P0", "localResult": "给出 first_repair_action。", "targetShape": "模拟补救：if_wrong=<first_repair_action>，trigger=<repair_trigger>，no_average_down=<boundary>。", "parentId": "domain:finance-valid-action-advice", "score": 22, "workStatus": "done", "workNote": "mechanism_chain.if_wrong_repair_path 暴露 first_repair_action、reassess_trigger 和 no_average_down_unless。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: _overview_if_wrong", "backend/tests/test_advice_center.py: if_wrong_repair_path"], "ownerLens": "risk", "needType": "judgment", "directCauseForParent": "没有错后补救，完整建议只说进攻不说防守。", "edgeProof": "当前父节点是完整有效建议；有效建议需要能处理判断失败。", "proofGate": "补救动作不扩大风险，不绕过 preflight。"}, {"id": "domain:ticker-action-verdict", "title": "机制：标的和动作被锁定", "summary": "价格计划必须先锁定计划对象和动作，不能一边计划一边换结论。", "status": "partial", "priority": "P0", "localResult": "锁定 <ticker> 和 <action>。", "targetShape": "模拟锁定：subject=<ticker>，action=<buy_sell_wait_avoid>，action_reason_ref=<reason_ref>。", "parentId": "plan:price-level-trade-plan", "score": 34, "ownerLens": "finance", "needType": "judgment", "directCauseForParent": "没有标的和动作，价格计划不知道给谁、做什么。", "edgeProof": "当前父节点是价格级交易计划；计划需要对象和动作被锁定。", "proofGate": "观察/等待/避开不能被包装成买入。"}, {"id": "judgment:current-action-validity", "title": "判断：当前动作成立", "summary": "价格计划要成立，必须先判断当前动作为什么成立或为什么要等。", "status": "partial", "priority": "P0", "localResult": "给出 action_validity=<valid_wait_block> 和 why_now。", "targetShape": "模拟判断：action_validity=<valid_or_wait_or_block>，why=<why_buy_sell_wait>，evidence_state=<support_conflict_unknown>。", "parentId": "plan:price-level-trade-plan", "score": 20, "ownerLens": "research/trading", "needType": "judgment", "directCauseForParent": "没有当前动作成立判断，价格计划只是机械价位表。", "edgeProof": "当前父节点是交易计划；计划的价格边界必须服务于一个成立的动作判断。", "proofGate": "动作不成立时，计划降级为等待/观察/放弃。"}, {"id": "rule:entry-trigger-max-chase", "title": "规则：入场/触发/最高追", "summary": "价格计划要说明什么时候开始做、最高追到哪里。", "status": "partial", "priority": "P0", "localResult": "给出 entry_or_trigger、max_entry、abandon_if。", "targetShape": "模拟规则：entry_or_trigger=<entry_or_trigger>，max_entry=<max_entry>，abandon_if=<abandon_condition>。", "parentId": "plan:price-level-trade-plan", "score": 18, "ownerLens": "trading", "needType": "process", "directCauseForParent": "没有入场和最高追规则，计划无法回答怎么追或何时放弃。", "edgeProof": "当前父节点是价格级交易计划；它直接需要入场边界。", "proofGate": "追高必须同时有触发、上限和失效条件。"}, {"id": "model:risk-reward-levels", "title": "规则：止损/失效/目标", "summary": "价格计划要说明错到哪里失效、对到哪里退出。", "status": "partial", "priority": "P0", "localResult": "生成 stop_or_invalidation 和 target_or_exit。", "targetShape": "模拟输出：stop_or_invalidation=<stop_or_invalidation>，target_or_exit=<target_or_exit>，risk_unit=<risk_unit>。", "parentId": "plan:price-level-trade-plan", "score": 24, "ownerLens": "risk", "needType": "process", "directCauseForParent": "没有止损/失效/目标，父计划不能称为交易计划。", "edgeProof": "当前父节点是价格级交易计划；它直接需要防守和退出边界。", "proofGate": "缺 stop/target 时 buy/chase 降级。"}, {"id": "rule:abandon-condition", "title": "规则：放弃条件", "summary": "价格计划要说明什么情况不做，防止追着错误计划跑。", "status": "partial", "priority": "P0", "localResult": "给出 abandon_if。", "targetShape": "模拟规则：abandon_if=<price_miss_or_signal_fail_or_data_stale_condition>。", "parentId": "plan:price-level-trade-plan", "score": 28, "ownerLens": "risk", "needType": "safety", "directCauseForParent": "没有放弃条件，价格计划会变成无限等待或无限追。", "edgeProof": "当前父节点是可放弃的交易计划；它直接需要放弃边界。", "proofGate": "触发放弃条件时不输出强动作。"}, {"id": "domain:why-now-evidence", "title": "机制：为什么现在这个动作成立", "summary": "动作成立要说明现在的局面为什么支持买、卖、等或避开。", "status": "partial", "priority": "P0", "localResult": "给出 why_buy_sell_wait 和证据摘要。", "targetShape": "模拟理由：why=<why_buy_sell_wait>，thesis=<support_conflict_unknown>，news=<support_conflict_unknown>，kline=<support_conflict_unknown>。", "parentId": "judgment:current-action-validity", "score": 26, "ownerLens": "research", "needType": "judgment", "directCauseForParent": "没有 why 和证据，当前动作只是结论，不是可判断动作。", "edgeProof": "当前父节点是动作成立判断；它直接需要成立理由。", "proofGate": "证据冲突或未知必须降级。"}, {"id": "data:current-price-location", "title": "数据：当前价格位置", "summary": "动作成立必须知道当前价格相对计划和关键位的位置。", "status": "partial", "priority": "P1", "localResult": "提供 current_price 与 trigger/support/resistance 的关系。", "targetShape": "模拟数据：current_price=<current_price>，relative_to_trigger=<above_or_below>，relative_to_plan=<cheap_ok_expensive>。", "parentId": "judgment:current-action-validity", "score": 30, "ownerLens": "data", "needType": "data", "directCauseForParent": "没有当前价格位置，无法判断现在能不能追、等或放弃。", "edgeProof": "当前父节点是当前动作成立；它直接依赖当前价格位置。", "proofGate": "价格位置缺失时显示延迟/等待。"}, {"id": "process:situation-judgment", "title": "处理：thesis/news/K线局面判断", "summary": "为什么现在成立需要把三源证据合成局面判断。", "status": "partial", "priority": "P0", "localResult": "生成 support/conflict/unknown 和 why。", "targetShape": "模拟输出：thesis=<support_conflict_unknown>，news=<support_conflict_unknown>，kline=<support_conflict_unknown>，why=<why_line>。", "parentId": "domain:why-now-evidence", "score": 28, "ownerLens": "research", "needType": "process", "directCauseForParent": "没有局面判断，父理由只有材料没有机制。", "edgeProof": "当前父节点是 why_now 机制；它需要证据合成。", "proofGate": "三源冲突时显示冲突并降级。"}, {"id": "rule:evidence-conflict", "title": "规则：证据冲突/未知降级", "summary": "动作成立判断必须处理证据冲突和未知，不能强行写成支持。", "status": "partial", "priority": "P1", "localResult": "处理 support/conflict/unknown。", "targetShape": "模拟规则：if core_evidence=<conflict_or_unknown> then action_validity=<wait_or_block> and reason=<conflict_reason>。", "parentId": "judgment:current-action-validity", "score": 26, "ownerLens": "research", "needType": "process", "directCauseForParent": "没有冲突处理，当前动作成立判断可能误导。", "edgeProof": "当前父节点是动作成立判断；冲突/未知直接影响动作是否成立。", "proofGate": "冲突时不输出无保留强建议。"}, {"id": "data:thesis-news-kline", "title": "底部数据：thesis/news/K线三源", "summary": "局面判断需要基本面逻辑、消息和价格结构。", "status": "partial", "priority": "P1", "localResult": "提供 thesis_ref、news_ref、kline_ref。", "targetShape": "模拟数据：thesis_ref=<thesis_ref>，news_ref=<news_ref>，kline_ref=<kline_ref>，freshness=<freshness_state>。", "parentId": "process:situation-judgment", "score": 36, "ownerLens": "research", "needType": "data", "directCauseForParent": "没有三源材料，父过程没有证据来源。", "edgeProof": "当前父节点是局面判断；它直接需要三源材料。", "proofGate": "缺失材料标 unknown，不假装支持。"}, {"id": "model:entry-chase-pullback", "title": "模型：追高/回踩/禁止追", "summary": "入场规则要区分现在能追、等回踩还是放弃。", "status": "partial", "priority": "P0", "localResult": "生成 chase/wait/block 分类。", "targetShape": "模拟输出：classification=<chase_or_wait_pullback_or_block>，trigger=<trigger_condition>，max_entry=<max_entry>，abandon_if=<abandon_condition>。", "parentId": "rule:entry-trigger-max-chase", "score": 18, "ownerLens": "trading", "needType": "process", "directCauseForParent": "没有这个模型，父规则无法回答怎么追。", "edgeProof": "当前父节点是入场/触发/最高追；它直接需要追高/回踩判断。", "proofGate": "追高必须同时有触发、上限和失效条件。"}, {"id": "data:plan-anchor", "title": "底部数据：计划锚点", "summary": "追高/回踩要基于冻结计划，而不是临时拿当前价当买点。", "status": "partial", "priority": "P0", "localResult": "提供 entry_anchor/trigger/stop/target。", "targetShape": "模拟数据：entry_anchor=<entry_anchor>，trigger=<trigger>，stop=<stop>，target=<target>，source_ref=<plan_source_ref>。", "parentId": "model:entry-chase-pullback", "score": 42, "ownerLens": "data", "needType": "data", "directCauseForParent": "没有计划锚点，父模型无法判断价格是否追过头。", "edgeProof": "追高/回踩是相对计划的判断。", "proofGate": "锚点缺失时只能观察或等待。"}, {"id": "data:daily-kline", "title": "底部数据：日线/K线结构", "summary": "价格模型需要近期走势、支撑、压力和量能。", "status": "partial", "priority": "P1", "localResult": "提供 OHLCV、前高、支撑、量价结构。", "targetShape": "模拟数据：bars=<ohlcv_series>，prior_high=<prior_high>，support=<support_zone>，volume_state=<volume_state>。", "parentId": "model:entry-chase-pullback", "score": 58, "ownerLens": "data", "needType": "data", "directCauseForParent": "没有 K 线结构，父模型无法区分突破和冲高回落。", "edgeProof": "追高/回踩直接依赖价格路径。", "proofGate": "K线不可用时不输出结构判断。"}, {"id": "data:intraday-tape", "title": "底部数据：分时价格/量能", "summary": "追高判断需要当前盘中位置和量价状态。", "status": "partial", "priority": "P1", "localResult": "提供 current_price、VWAP、量能和关键位关系。", "targetShape": "模拟数据：current_price=<current_price>，vwap=<vwap>，relative_to_trigger=<above_or_below>，volume_state=<volume_state>。", "parentId": "model:entry-chase-pullback", "score": 30, "ownerLens": "data", "needType": "data", "directCauseForParent": "没有分时状态，父模型不能判断现在是否可以追。", "edgeProof": "追高是当前时点判断。", "proofGate": "分时缺失时显示延迟/等待。"}, {"id": "domain:confidence-odds", "title": "机制：把握和赔率支持执行", "summary": "这笔计划值得做，需要表达把握、样本状态和赔率是否匹配。", "status": "partial", "priority": "P0", "localResult": "给出 confidence_label、sample_state、risk_reward。", "targetShape": "模拟把握：confidence=<calibrated_probability_or_sample_insufficient>，risk_reward=<risk_reward_or_unknown>，caveat=<confidence_caveat>。", "parentId": "judgment:plan-worth-doing", "score": 20, "ownerLens": "quant", "needType": "judgment", "directCauseForParent": "没有把握和赔率，父判断无法说明这笔计划值不值得做。", "edgeProof": "当前父节点是计划值得做；它直接需要把握和赔率机制。", "proofGate": "样本不足不显示伪精确胜率；赔率不清时不升级强动作。"}, {"id": "rule:honest-confidence-label", "title": "规则：诚实把握口径", "summary": "样本不足时不能显示伪精确概率。", "status": "partial", "priority": "P0", "localResult": "区分 calibrated 与 sample_insufficient。", "targetShape": "模拟规则：if sample_state=<insufficient> then confidence=<sample_insufficient> and probability=<none>。", "parentId": "domain:confidence-odds", "score": 44, "ownerLens": "quant", "needType": "safety", "directCauseForParent": "没有诚实口径，父把握会误导用户。", "edgeProof": "概率/胜率必须先避免伪确定性。", "proofGate": "未校准不输出数值胜率。"}, {"id": "process:probability-calibration", "title": "处理：同类样本概率校准", "summary": "要给概率数值，必须来自同类 setup 后验样本。", "status": "partial", "priority": "P0", "localResult": "生成 calibrated_probability 或 insufficient。", "targetShape": "模拟输出：setup_bucket=<setup_bucket>，sample_size=<sample_size_or_insufficient>，hit_rate=<calibrated_rate_or_none>，expected_r=<expected_r_or_unknown>。", "parentId": "domain:confidence-odds", "score": 16, "ownerLens": "quant", "needType": "process", "directCauseForParent": "没有校准过程，父把握只能是结构置信。", "edgeProof": "数值概率需要统计来源。", "proofGate": "样本不足时不显示概率。"}, {"id": "data:closed-loop-samples", "title": "后验数据：建议闭环样本", "summary": "概率校准需要过去建议之后的结果。", "status": "partial", "priority": "P1", "localResult": "提供 frozen advice 和后验结果。", "targetShape": "模拟样本：advice_ref=<advice_ref>，horizon=<review_horizon>，outcome=<hit_miss_unclear>，r_multiple=<r_multiple_or_unknown>。", "parentId": "process:probability-calibration", "score": 28, "ownerLens": "review_loop", "needType": "feedback", "directCauseForParent": "没有后验样本，父过程没有依据。", "edgeProof": "校准不是主观 confidence。", "proofGate": "样本必须回到当时快照。"}, {"id": "data:setup-regime-tags", "title": "数据：setup/市场环境分桶", "summary": "同类概率需要分桶，不能混样本。", "status": "partial", "priority": "P1", "localResult": "提供 setup_bucket/regime/liquidity。", "targetShape": "模拟标签：setup=<setup_bucket>，regime=<market_regime>，liquidity=<liquidity_state>。", "parentId": "process:probability-calibration", "score": 22, "ownerLens": "quant", "needType": "data", "directCauseForParent": "没有分桶，父过程会制造假概率。", "edgeProof": "概率校准要比较同类。", "proofGate": "无分桶时只显示未校准。"}, {"id": "rule:repair-taxonomy", "title": "规则：补救动作枚举", "summary": "错后补救要稳定可测。", "status": "partial", "priority": "P0", "localResult": "定义 cancel/stop_chase/reduce/exit/wait_reassess 等动作。", "targetShape": "模拟枚举：repair_action=<cancel_or_stop_chase_or_reduce_or_exit_or_wait_reassess>。", "parentId": "domain:repair-if-wrong", "score": 30, "ownerLens": "risk", "needType": "contract", "directCauseForParent": "没有枚举，父策略会变成随意说明文。", "edgeProof": "补救动作必须可审查。", "proofGate": "动作必须来自固定集合。"}, {"id": "data:invalidation-state", "title": "数据：计划失效状态", "summary": "补救策略需要知道原判断何时失效。", "status": "partial", "priority": "P0", "localResult": "提供 abandon_if/invalidation 是否触发。", "targetShape": "模拟数据：invalidation=<triggered_or_not>，condition=<invalidation_condition>，price_relation=<relation_to_key_level>。", "parentId": "domain:repair-if-wrong", "score": 30, "ownerLens": "risk", "needType": "data", "directCauseForParent": "没有失效状态，父策略不知道何时判错。", "edgeProof": "错后补救由失效条件触发。", "proofGate": "没有失效条件时不输出强建议。"}, {"id": "data:position-risk-preflight", "title": "数据：持仓/风险/preflight", "summary": "补救动作取决于是否持仓和风险状态。", "status": "partial", "priority": "P0", "localResult": "提供 position_state/risk_state/preflight_state。", "targetShape": "模拟数据：position_state=<flat_or_holding>，risk_state=<risk_ok_or_blocked>，preflight=<allowed_or_blocked_with_reason>。", "parentId": "domain:repair-if-wrong", "score": 42, "ownerLens": "risk", "needType": "data", "directCauseForParent": "没有持仓风险状态，父策略无法决定退出、减仓或等待。", "edgeProof": "错后补救不能脱离真实风险。", "proofGate": "不绕过 preflight。"}, {"id": "boundary:no-average-down", "title": "边界：禁止默认摊平", "summary": "判断错了不能默认越跌越买。", "status": "partial", "priority": "P0", "localResult": "明确 no_average_down_unless。", "targetShape": "模拟边界：average_down=<blocked_unless_new_valid_advice_and_preflight>。", "parentId": "domain:repair-if-wrong", "score": 38, "ownerLens": "risk", "needType": "safety", "directCauseForParent": "没有这个边界，父策略可能扩大亏损。", "edgeProof": "补救首先是控制损失。", "proofGate": "新有效建议和 preflight 未通过时不建议补仓。"}, {"id": "display:summary-slots", "title": "展示：压缩建议有固定信息槽", "summary": "第一屏承载压缩建议，需要固定展示动作、价位、把握、错后、证据、边界。", "status": "partial", "priority": "P0", "localResult": "总览第一屏有稳定可见槽位。", "targetShape": "模拟槽位：headline=<ticker_action>，plan=<price_plan>，confidence=<confidence_label>，repair=<repair_line>，evidence=<evidence_line>，boundary=<boundary_badge>。", "parentId": "visible:overview-first-screen-delivery", "score": 40, "ownerLens": "UX", "needType": "output", "directCauseForParent": "没有固定槽位，压缩建议无法稳定呈现在第一屏。", "edgeProof": "当前父节点是第一屏呈现；它直接需要可见槽位。", "proofGate": "槽位缺失时显示缺失或降级。"}, {"id": "source:summary-from-domain-advice", "title": "来源：压缩建议来自完整有效建议", "summary": "压缩建议必须引用完整有效建议，不允许总览页自己重新判断。", "status": "partial", "priority": "P0", "localResult": "overview_compressed_advice 有 domain_advice_ref。", "targetShape": "模拟来源：compressed.source=<domain_advice_ref>，source_kind=<complete_domain_advice>。", "parentId": "product:overview-compressed-effective-advice", "score": 34, "workStatus": "done", "workNote": "压缩建议的来源固定为 advice_center.overview_brief，不由总览页重新裁判。", "completedAt": "2026-05-11", "evidence": ["backend/advice_center_router.py: overview_minimal_message.source", "frontend/tabs/overview.js: _getOverviewMinimalMessage source check"], "ownerLens": "architecture", "needType": "contract", "directCauseForParent": "没有完整有效建议来源，当前父节点的压缩建议无法证明“有效”。", "edgeProof": "当前父节点是压缩后有效建议；它直接需要完整建议来源。", "proofGate": "总览不二次计算正式 action，只引用来源。"}, {"id": "display:first-screen-placement", "title": "承载：第一屏主位置展示", "summary": "总结必须放在用户第一眼能看到的位置。", "status": "partial", "priority": "P0", "localResult": "summary_advice 是总览第一屏主内容。", "targetShape": "模拟页面：primary_panel=<summary_advice>，secondary_panels=<risk_readiness_details>。", "parentId": "visible:overview-first-screen-delivery", "score": 36, "ownerLens": "frontend", "needType": "UX", "directCauseForParent": "总结存在但不在第一屏，父结果不成立。", "edgeProof": "父结果强调总览页第一屏能读懂。", "proofGate": "旧面板不能抢主位。"}, {"id": "state:no-advice-reason", "title": "边界：无有效建议时不伪造建议", "summary": "没有完整有效建议时，系统必须说明不能建议，而不是硬凑一条。", "status": "partial", "priority": "P0", "localResult": "无有效建议时显示 blocked/insufficient/stale 原因。", "targetShape": "模拟空态：status=<blocked_or_insufficient_or_stale>，reason=<missing_reason>，next_input=<needed_input>。", "parentId": "proof:safety-trace-reviewable", "score": 32, "ownerLens": "UX", "needType": "UX", "directCauseForParent": "没有这个边界，安全证明无法排除伪建议。", "edgeProof": "当前父节点是安全可追溯证明；它直接需要无建议时的 fail-closed 行为。", "proofGate": "关键数据缺失/过期/冲突时不显示伪确定建议。"}, {"id": "contract:summary-advice-object", "title": "合同：压缩建议字段", "summary": "压缩建议需要稳定字段承载关键行动信息。", "status": "partial", "priority": "P0", "localResult": "存在 overview_compressed_advice_v0。", "targetShape": "模拟对象：headline=<headline>，one_line=<one_line>，price_plan=<price_plan>，confidence=<confidence>，repair=<repair>，evidence=<evidence>，boundary=<boundary>。", "parentId": "product:overview-compressed-effective-advice", "score": 32, "ownerLens": "architecture", "needType": "contract", "directCauseForParent": "没有字段合同，当前父节点无法稳定产出压缩建议。", "edgeProof": "当前父节点是压缩建议产物；它直接需要字段合同。", "proofGate": "字段缺失时降级，不让页面补判。"}, {"id": "process:summary-compression", "title": "处理：完整建议压缩成总览建议", "summary": "把完整金融建议压缩成第一屏可读的一句话和标签。", "status": "partial", "priority": "P0", "localResult": "从完整金融有效建议生成 overview_compressed_advice。", "targetShape": "模拟压缩：domain_advice(<action>,<price_plan>,<why>,<confidence>,<repair>,<evidence>,<boundary>) -> summary_advice。", "parentId": "product:overview-compressed-effective-advice", "score": 28, "ownerLens": "UX", "needType": "process", "directCauseForParent": "没有压缩过程，当前父节点只能是完整长建议，不能成为总览压缩建议。", "edgeProof": "当前父节点是压缩建议产物；它直接需要压缩处理。", "proofGate": "压缩只选字段，不重新计算 verdict。"}, {"id": "rule:compression-keeps-action-boundary", "title": "规则：压缩不丢行动边界", "summary": "压缩后仍要保留动作、价格、把握、错后和人工边界。", "status": "partial", "priority": "P0", "localResult": "定义压缩后必须保留的不可丢字段。", "targetShape": "模拟规则：required_after_compression=<action,entry_or_trigger,stop_or_invalidation,target_or_exit,confidence,repair,boundary>。", "parentId": "product:overview-compressed-effective-advice", "score": 24, "ownerLens": "finance/product", "needType": "safety", "directCauseForParent": "没有这个规则，当前父节点可能变成好看的短文案但不再有效。", "edgeProof": "当前父节点要求压缩后仍有效；关键行动边界不能被压缩掉。", "proofGate": "缺关键边界时显示不完整/降级，不输出强建议。"}, {"id": "data:freshness-timestamps", "title": "数据：输入新鲜度", "summary": "安全证明需要知道价格、消息、判断是否过期。", "status": "partial", "priority": "P0", "localResult": "提供 generated_at/as_of/stale。", "targetShape": "模拟数据：generated_at=<generated_at>，price_as_of=<price_as_of>，news_as_of=<news_as_of>，stale=<true_or_false>。", "parentId": "proof:safety-trace-reviewable", "score": 42, "ownerLens": "ops", "needType": "data", "directCauseForParent": "没有新鲜度，建议可能用旧数据冒充当前判断。", "edgeProof": "有效建议必须知道时效。", "proofGate": "过期时降级。"}, {"id": "trace:decision-snapshot", "title": "追溯：建议和输入快照", "summary": "复盘需要冻结当时建议和依据。", "status": "partial", "priority": "P0", "localResult": "提供 source_ref/snapshot_ref/hash。", "targetShape": "模拟追溯：advice_ref=<advice_ref>，input_snapshot_ref=<input_snapshot_ref>，hash=<snapshot_hash>。", "parentId": "proof:safety-trace-reviewable", "score": 34, "ownerLens": "review_loop", "needType": "evidence", "directCauseForParent": "没有快照，父证明无法知道当时系统说了什么。", "edgeProof": "可复盘需要冻结事实。", "proofGate": "展示建议时保存或引用快照。"}, {"id": "boundary:manual-execution", "title": "边界：只读建议和人工 preflight", "summary": "总览建议不能变成自动订单。", "status": "partial", "priority": "P0", "localResult": "明确 review_only/manual_preflight_required。", "targetShape": "模拟边界：auto_order=false，preflight_required=<true_or_false>，manual_confirm=<required>。", "parentId": "proof:safety-trace-reviewable", "score": 58, "ownerLens": "risk", "needType": "safety", "directCauseForParent": "没有执行边界，父结果可能越权。", "edgeProof": "真实账户必须只读和人工确认。", "proofGate": "summary 不触发真实订单。"}, {"id": "review:outcome-observation", "title": "复盘：后验结果观察", "summary": "有效建议最终要能被结果检验。", "status": "partial", "priority": "P1", "localResult": "记录建议后的价格路径或交易结果。", "targetShape": "模拟观察：advice_ref=<advice_ref>，horizon=<review_horizon>，outcome=<hit_miss_unclear>，lesson=<iteration_note>。", "parentId": "proof:safety-trace-reviewable", "score": 30, "ownerLens": "review_loop", "needType": "feedback", "directCauseForParent": "没有后验观察，父结果无法证明建议质量。", "edgeProof": "有效性要能闭环迭代。", "proofGate": "未知结果标 unclear，不强行命中。"}], "subtasks": [{"priority": "P0", "title": "机制化完整金融建议", "why": "避免把完整建议拆成字段表；先固定让建议成立的机制链。", "input": "price_plan, worth_judgment, repair_strategy, evidence_boundary", "output": "domain_valid_advice_mechanism_v0", "acceptance": "每条建议先有价格级交易计划、值得做判断和错后补救。", "ownerLens": "finance", "workStatus": "next"}, {"priority": "P0", "title": "价格级行动计划", "why": "有效建议必须落到买卖/追高/放弃的价格边界，并由动作成立判断支撑。", "input": "current_action_validity, plan anchor, daily K line, intraday tape, stop/target levels", "output": "entry_or_trigger/max_entry/stop_or_invalidation/target_or_exit/abandon_if", "acceptance": "强动作缺动作成立判断或关键价位时降级。", "ownerLens": "trading", "workStatus": "next"}, {"priority": "P0", "title": "把握校准和诚实口径", "why": "不能把主观 confidence 包装成成功概率。", "input": "closed-loop samples, setup/regime tags", "output": "calibrated_probability or sample_insufficient", "acceptance": "样本不足时不显示数值概率。", "ownerLens": "quant", "workStatus": "next"}, {"priority": "P0", "title": "总览第一屏总结承载", "why": "金融建议成立后，还要被总览页第一屏读懂。", "input": "domain_valid_advice_v0, summary_advice_v0, display slots", "output": "overview first-screen summary", "acceptance": "第一屏展示动作、价位、把握、错后、证据和边界。", "ownerLens": "UX", "workStatus": "next"}], "metrics": {"nodeCount": 42, "statusCounts": {"target": 1, "partial": 41}, "workCounts": {"active": 1, "done": 8}, "priorityCounts": {"P0": 34, "P1": 8}, "averageScore": 31.2}}</script>
+  <script>
+    const data = JSON.parse(document.getElementById('outcome-data').textContent);
+    const embeddedData = typeof structuredClone === 'function'
+      ? structuredClone(data)
+      : JSON.parse(JSON.stringify(data));
+    const labels = {"target": "目标", "ruler": "尺子", "exists": "可复用", "partial": "部分可用", "weak": "薄弱", "missing": "缺口", "risk": "风险", "done": "完成"};
+    const workLabels = {"active": "施工中", "done": "已修复", "next": "下一步", "pending": "待处理", "blocked": "卡住", "deferred": "后置"};
+    const priorityRank = { P0: 0, P1: 1, P2: 2, P3: 3 };
+    const statusRank = { target: 0, ruler: 1, weak: 2, missing: 3, risk: 4, partial: 5, exists: 6, done: 7 };
+    const workRank = { active: 0, done: 1, next: 2, blocked: 3, pending: 4, deferred: 5 };
+    const draftBaseKey = `outcome-tree-draft:${data.project?.sourcePath || location.pathname}`;
+    const embeddedVersion = data.version || 'unversioned';
+    const draftKey = `${draftBaseKey}:${embeddedVersion}`;
+    const draftLoad = loadDraft();
+    const loadedDraft = draftLoad.data;
+    let draftNotice = draftLoad.notice;
+    if (loadedDraft?.nodes?.length) {
+      Object.keys(data).forEach(key => delete data[key]);
+      Object.assign(data, loadedDraft);
+    }
+    data.editor = data.editor || {};
+    data.editor.positions = data.editor.positions || {};
+    let layerLabels = data.mapLayers || ['Outcome', 'Ruler', 'Capability', 'Evidence / Interface', 'Sub-capability', 'Detail'];
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const map = document.getElementById('map');
+    const viewport = document.getElementById('viewport');
+    const bandsEl = document.getElementById('bands');
+    const linksEl = document.getElementById('links');
+    const nodesEl = document.getElementById('nodes');
+    const mini = document.getElementById('mini');
+    const rawNodes = data.nodes || [];
+    const byId = new Map();
+    const children = new Map();
+    let root = null;
+    const nodeW = 238;
+    const nodeH = 78;
+    const xGap = 330;
+    const yGap = 128;
+    const margin = 92;
+    let activeId = null;
+    let transform = { x: 0, y: 0, k: 1 };
+    let bounds = { x: 0, y: 0, width: 1000, height: 700, maxDepth: 1 };
+    let isDragging = false;
+    let dragStart = null;
+    let nodeDrag = null;
+    let editMode = false;
+    let saveTimer = null;
+    let fileHandle = null;
+    let visibleNodeIds = new Set(rawNodes.map(node => node.id));
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(draftKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return { data: parsed, notice: '已载入本版本草稿' };
+        }
+        const legacyRaw = localStorage.getItem(draftBaseKey);
+        if (legacyRaw) {
+          const legacy = JSON.parse(legacyRaw);
+          if ((legacy.version || 'unversioned') === embeddedVersion) {
+            localStorage.setItem(draftKey, legacyRaw);
+            localStorage.removeItem(draftBaseKey);
+            return { data: legacy, notice: '已迁移本版本草稿' };
+          }
+          return { data: null, notice: '已忽略旧版本草稿' };
+        }
+        return { data: null, notice: '只读' };
+      } catch (error) {
+        console.warn('Could not load local draft', error);
+        return { data: null, notice: '草稿读取失败' };
+      }
+    }
+
+    function rebuildIndexes() {
+      byId.clear();
+      children.clear();
+      rawNodes.forEach(node => {
+        byId.set(node.id, node);
+        const parentId = node.parentId || '__root__';
+        if (!children.has(parentId)) children.set(parentId, []);
+        children.get(parentId).push(node);
+      });
+      children.forEach(items => items.sort((a, b) => {
+        const pa = priorityRank[a.priority] ?? 9;
+        const pb = priorityRank[b.priority] ?? 9;
+        if (pa !== pb) return pa - pb;
+        const sa = statusRank[a.status || 'partial'] ?? 9;
+        const sb = statusRank[b.status || 'partial'] ?? 9;
+        if (sa !== sb) return sa - sb;
+        return String(a.title || a.id).localeCompare(String(b.title || b.id), 'zh-CN');
+      }));
+      root = (children.get('__root__') || [])[0] || rawNodes[0] || null;
+      if (!activeId || !byId.has(activeId)) activeId = root ? root.id : null;
+    }
+
+    rebuildIndexes();
+
+    function layoutTree() {
+      let cursor = 0;
+      let maxDepth = 0;
+      rawNodes.forEach(node => {
+        delete node._depth;
+        delete node._x;
+        delete node._y;
+      });
+      function place(node, depth) {
+        if (!node || node._depth !== undefined) return;
+        node._depth = depth;
+        maxDepth = Math.max(maxDepth, depth);
+        const kids = children.get(node.id) || [];
+        if (!kids.length) {
+          node._y = margin + cursor * yGap;
+          cursor += 1;
+        } else {
+          kids.forEach(child => place(child, depth + 1));
+          node._y = kids.reduce((sum, child) => sum + child._y, 0) / kids.length;
+        }
+        node._x = margin + depth * xGap;
+      }
+      if (root) place(root, 0);
+      rawNodes.forEach(node => {
+        if (node._depth === undefined) {
+          node._depth = 0;
+          node._x = margin;
+          node._y = margin + cursor * yGap;
+          cursor += 1;
+        }
+        const saved = data.editor?.positions?.[node.id];
+        if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) {
+          node._x = saved.x;
+          node._y = saved.y;
+        }
+      });
+      const leaves = Math.max(1, cursor);
+      const maxX = Math.max(...rawNodes.map(node => node._x || 0), margin);
+      const maxY = Math.max(...rawNodes.map(node => node._y || 0), margin);
+      bounds = {
+        x: 0,
+        y: 0,
+        width: Math.max(margin * 2 + maxDepth * xGap + nodeW, maxX + nodeW + margin),
+        height: Math.max(margin * 2 + Math.max(1, leaves - 1) * yGap + nodeH, maxY + nodeH + margin),
+        maxDepth
+      };
+    }
+
+    function textIndex(node) {
+      return [
+        node.title, node.summary, node.status, node.priority, node.ownerLens,
+        node.workStatus, node.workNote, node.completedAt, node.proofGate, node.missingProof, node.nextSubtask,
+        ...(node.existingSupport || []),
+        ...(node.gaps || []),
+        ...(node.evidence || []),
+        ...(node.risks || [])
+      ].filter(Boolean).join(' ').toLowerCase();
+    }
+
+    function directMatch(node) {
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      const status = document.getElementById('status-filter').value;
+      const workStatus = document.getElementById('work-filter').value;
+      const priority = document.getElementById('priority-filter').value;
+      if (status !== 'all' && (node.status || 'partial') !== status) return false;
+      if (workStatus !== 'all' && (node.workStatus || 'pending') !== workStatus) return false;
+      if (priority !== 'all' && node.priority !== priority) return false;
+      if (q && !textIndex(node).includes(q)) return false;
+      return true;
+    }
+
+    function updateVisibility() {
+      visibleNodeIds = new Set();
+      rawNodes.forEach(node => {
+        if (directMatch(node)) visibleNodeIds.add(node.id);
+      });
+      if (visibleNodeIds.size === rawNodes.length) return;
+      const addRelatives = id => {
+        let current = byId.get(id);
+        while (current) {
+          visibleNodeIds.add(current.id);
+          current = byId.get(current.parentId);
+        }
+        (children.get(id) || []).forEach(child => visibleNodeIds.add(child.id));
+      };
+      [...visibleNodeIds].forEach(addRelatives);
+    }
+
+    function renderMap() {
+      layoutTree();
+      updateVisibility();
+      clear(bandsEl);
+      clear(linksEl);
+      clear(nodesEl);
+      renderBands();
+      renderLinks();
+      renderNodes();
+      updateSelection();
+      renderMiniMap();
+      applyTransform();
+    }
+
+    function renderBands() {
+      for (let depth = 0; depth <= bounds.maxDepth; depth += 1) {
+        const x = margin - 38 + depth * xGap;
+        const rect = el('rect', {
+          x,
+          y: 34,
+          width: xGap - 42,
+          height: Math.max(420, bounds.height - 68),
+          rx: 8,
+          class: 'band'
+        });
+        const label = el('text', {
+          x: x + 12,
+          y: 58,
+          class: 'band-label'
+        });
+        label.textContent = layerLabels[depth] || `Layer ${depth}`;
+        bandsEl.append(rect, label);
+      }
+    }
+
+    function renderLinks() {
+      rawNodes.filter(node => node.parentId).forEach(node => {
+        const parent = byId.get(node.parentId);
+        if (!parent) return;
+        const path = el('path', {
+          d: linkPath(parent, node),
+          class: ['link', String(node.priority || '').toLowerCase()].filter(Boolean).join(' '),
+          'data-source': parent.id,
+          'data-target': node.id
+        });
+        linksEl.append(path);
+      });
+    }
+
+    function renderNodes() {
+      rawNodes.forEach(node => {
+        const workStatus = node.workStatus || 'pending';
+        const group = el('g', {
+          class: `map-node status-${node.status || 'partial'} work-${workStatus}`,
+          transform: `translate(${node._x}, ${node._y})`,
+          'data-node-id': node.id
+        });
+        const rect = el('rect', { class: 'node-card', width: nodeW, height: nodeH, rx: 8 });
+        const strip = el('rect', {
+          class: `status-strip status-${node.status || 'partial'}`,
+          width: 8,
+          height: nodeH,
+          rx: 4
+        });
+        group.append(rect, strip);
+        appendWrappedText(group, node.title || node.id, 18, 22, 18, 2, 'node-title');
+        appendWrappedText(group, node.summary || '', 18, 52, 28, 1, 'node-summary');
+        drawPill(group, labels[node.status] || node.status || 'partial', 16, nodeH - 20, 58);
+        if (node.priority) drawPill(group, node.priority, 82, nodeH - 20, 34);
+        if (node.workStatus) {
+          group.append(el('circle', {
+            cx: nodeW - 17,
+            cy: nodeH - 14,
+            r: 6,
+            class: `work-dot work-${workStatus}-fill`
+          }));
+        }
+        if (node.score !== undefined && node.score !== null) {
+          const cx = nodeW - 25;
+          group.append(el('circle', { cx, cy: 23, r: 17, class: 'score-ring' }));
+          const score = el('text', { x: cx, y: 23, class: 'score-text' });
+          score.textContent = node.score;
+          group.append(score);
+        }
+        group.addEventListener('click', event => {
+          event.stopPropagation();
+          activeId = node.id;
+          updateSelection();
+          renderDetails();
+          showInspectorPanel('details');
+        });
+        group.addEventListener('mousedown', event => {
+          if (!editMode) return;
+          event.preventDefault();
+          event.stopPropagation();
+          activeId = node.id;
+          const point = screenToWorld(event.clientX, event.clientY);
+          nodeDrag = {
+            id: node.id,
+            startX: point.x,
+            startY: point.y,
+            nodeX: node._x,
+            nodeY: node._y
+          };
+          updateSelection();
+          renderDetails();
+          showInspectorPanel('details');
+        });
+        nodesEl.append(group);
+      });
+    }
+
+    function linkPath(source, target) {
+      const x1 = source._x + nodeW;
+      const y1 = source._y + nodeH / 2;
+      const x2 = target._x;
+      const y2 = target._y + nodeH / 2;
+      const bend = Math.max(90, (x2 - x1) * 0.46);
+      return `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
+    }
+
+    function appendWrappedText(parent, text, x, y, maxChars, maxLines, className) {
+      const lines = wrapText(String(text || ''), maxChars, maxLines);
+      lines.forEach((line, index) => {
+        const t = el('text', { x, y: y + index * 14, class: className });
+        t.textContent = line;
+        parent.append(t);
+      });
+    }
+
+    function wrapText(text, maxChars, maxLines) {
+      if (!text) return [];
+      const chars = [...text.replace(/\s+/g, ' ').trim()];
+      const lines = [];
+      let current = '';
+      chars.forEach(ch => {
+        if (visualLength(current + ch) > maxChars) {
+          lines.push(current);
+          current = ch;
+        } else {
+          current += ch;
+        }
+      });
+      if (current) lines.push(current);
+      if (lines.length > maxLines) {
+        const kept = lines.slice(0, maxLines);
+        kept[maxLines - 1] = kept[maxLines - 1].replace(/[，。；、,. ]+$/g, '') + '...';
+        return kept;
+      }
+      return lines;
+    }
+
+    function visualLength(text) {
+      return [...text].reduce((sum, ch) => sum + (/[一-鿿]/.test(ch) ? 1.8 : 1), 0);
+    }
+
+    function drawPill(parent, text, x, y, width) {
+      parent.append(el('rect', { x, y, width, height: 17, rx: 8, class: 'pill-bg' }));
+      const t = el('text', { x: x + 8, y: y + 12, class: 'pill-text' });
+      t.textContent = text;
+      parent.append(t);
+    }
+
+    function updateSelection() {
+      const active = byId.get(activeId);
+      const related = new Set();
+      let cursor = active;
+      while (cursor) {
+        related.add(cursor.id);
+        cursor = byId.get(cursor.parentId);
+      }
+      function addDesc(id) {
+        related.add(id);
+        (children.get(id) || []).forEach(child => addDesc(child.id));
+      }
+      if (active) addDesc(active.id);
+      document.querySelectorAll('.map-node').forEach(group => {
+        const id = group.dataset.nodeId;
+        group.classList.toggle('selected', id === activeId);
+        group.classList.toggle('dimmed', !visibleNodeIds.has(id) || (active && !related.has(id)));
+      });
+      document.querySelectorAll('.link').forEach(link => {
+        const source = link.dataset.source;
+        const target = link.dataset.target;
+        const inVisibleSet = visibleNodeIds.has(source) && visibleNodeIds.has(target);
+        const selectedLink = active && related.has(source) && related.has(target);
+        link.classList.toggle('dimmed', !inVisibleSet || (active && !selectedLink));
+        link.classList.toggle('highlight', selectedLink);
+      });
+      updateMiniViewport();
+    }
+
+    function renderDetails() {
+      const node = byId.get(activeId) || root;
+      const details = document.getElementById('details');
+      if (!node) {
+        details.innerHTML = '<h2>节点详情</h2><p>没有节点。</p>';
+        return;
+      }
+      details.innerHTML = `
+        <h2>${escapeHtml(node.title || node.id)}</h2>
+        <p>${escapeHtml(node.summary || '')}</p>
+        <div class="badges">
+          ${badge(labels[node.status] || node.status || '部分可用')}
+          ${badge(node.priority, String(node.priority || '').toLowerCase())}
+          ${badge(workLabels[node.workStatus] || node.workStatus, `work-${node.workStatus}-badge`)}
+          ${badge(node.ownerLens)}
+          ${node.score === undefined ? '' : badge('score ' + node.score)}
+        </div>
+        ${sectionText('施工状态', node.workNote)}
+        ${sectionText('完成时间', node.completedAt)}
+        ${sectionText('本节点作为结果', node.localResult)}
+        ${sectionText('模拟达成样例', node.targetShape)}
+        ${sectionText('父结果为什么需要它', node.directCauseForParent)}
+        ${sectionText('需要类型', node.needType || node.causeType)}
+        ${sectionText('父子关系证明', node.edgeProof)}
+        ${sectionText('证明门槛', node.proofGate)}
+        ${sectionText('缺失证明', node.missingProof)}
+        ${sectionList('现有可用', node.existingSupport)}
+        ${sectionList('缺口', node.gaps)}
+        ${sectionList('证据', node.evidence)}
+        ${sectionList('风险/边界', node.risks)}
+        ${sectionText('下一步', node.nextSubtask)}
+        ${editMode ? renderEditPanel(node) : ''}
+      `;
+      if (editMode) bindEditPanel(details, node);
+    }
+
+    function renderEditPanel(node) {
+      const canChangeParent = node.id !== root?.id;
+      const parentOptions = rawNodes
+        .filter(candidate => candidate.id !== node.id && !isDescendant(candidate.id, node.id))
+        .map(candidate => `<option value="${escapeHtml(candidate.id)}" ${node.parentId === candidate.id ? 'selected' : ''}>${escapeHtml(candidate.title || candidate.id)}</option>`)
+        .join('');
+      return `
+        <div class="editor-form" data-editor-node="${escapeHtml(node.id)}">
+          <h3>手动编辑</h3>
+          <label>父节点连接
+            <select data-edit-field="parentId" ${canChangeParent ? '' : 'disabled'}>
+              ${canChangeParent ? parentOptions : `<option value="">root</option>`}
+            </select>
+          </label>
+          <label>标题
+            <input data-edit-field="title" value="${escapeHtml(node.title || '')}">
+          </label>
+          <label>摘要
+            <textarea data-edit-field="summary">${escapeHtml(node.summary || '')}</textarea>
+          </label>
+          <div class="editor-row">
+            <label>状态
+              <select data-edit-field="status">${selectOptions(labels, node.status || 'partial')}</select>
+            </label>
+            <label>优先级
+              <select data-edit-field="priority">${['P0','P1','P2','P3'].map(p => `<option value="${p}" ${node.priority === p ? 'selected' : ''}>${p}</option>`).join('')}</select>
+            </label>
+            <label>分数
+              <input data-edit-field="score" type="number" min="0" max="100" value="${escapeHtml(node.score ?? '')}">
+            </label>
+          </div>
+          <div class="editor-row">
+            <label>施工
+              <select data-edit-field="workStatus"><option value="">无</option>${selectOptions(workLabels, node.workStatus || '')}</select>
+            </label>
+            <label>需要类型
+              <input data-edit-field="needType" value="${escapeHtml(node.needType || '')}">
+            </label>
+            <label>Owner lens
+              <input data-edit-field="ownerLens" value="${escapeHtml(node.ownerLens || '')}">
+            </label>
+          </div>
+          <label>本节点作为结果
+            <textarea data-edit-field="localResult">${escapeHtml(node.localResult || '')}</textarea>
+          </label>
+          <label>模拟达成样例
+            <textarea data-edit-field="targetShape">${escapeHtml(node.targetShape || '')}</textarea>
+          </label>
+          <label>父结果为什么需要它
+            <textarea data-edit-field="directCauseForParent">${escapeHtml(node.directCauseForParent || '')}</textarea>
+          </label>
+          <label>父子关系证明
+            <textarea data-edit-field="edgeProof">${escapeHtml(node.edgeProof || '')}</textarea>
+          </label>
+          <label>证明门槛
+            <textarea data-edit-field="proofGate">${escapeHtml(node.proofGate || '')}</textarea>
+          </label>
+        </div>
+      `;
+    }
+
+    function selectOptions(options, current) {
+      return Object.entries(options).map(([value, label]) => (
+        `<option value="${escapeHtml(value)}" ${value === current ? 'selected' : ''}>${escapeHtml(label)}</option>`
+      )).join('');
+    }
+
+    function bindEditPanel(container, node) {
+      container.querySelectorAll('[data-edit-field]').forEach(field => {
+        field.addEventListener('input', () => applyFieldEdit(node, field));
+        field.addEventListener('change', () => applyFieldEdit(node, field));
+      });
+    }
+
+    function applyFieldEdit(node, field) {
+      const key = field.dataset.editField;
+      let value = field.value;
+      if (key === 'parentId') {
+        updateParent(node, value || null);
+        return;
+      }
+      if (key === 'score') {
+        value = value === '' ? undefined : clamp(Number(value), 0, 100);
+      }
+      if (value === undefined || value === '') {
+        delete node[key];
+      } else {
+        node[key] = value;
+      }
+      recomputeMetrics();
+      renderStats();
+      renderMap();
+      scheduleSave('已自动保存草稿');
+    }
+
+    function updateParent(node, nextParentId) {
+      if (!nextParentId || nextParentId === node.id || isDescendant(nextParentId, node.id)) return;
+      node.parentId = nextParentId;
+      delete data.editor.positions[node.id];
+      rebuildIndexes();
+      recomputeMetrics();
+      renderStats();
+      renderMap();
+      renderDetails();
+      scheduleSave('已自动保存连接');
+    }
+
+    function isDescendant(candidateId, ancestorId) {
+      let cursor = byId.get(candidateId);
+      while (cursor?.parentId) {
+        if (cursor.parentId === ancestorId) return true;
+        cursor = byId.get(cursor.parentId);
+      }
+      return false;
+    }
+
+    function renderQueue() {
+      const tasks = [...(data.subtasks || [])].sort((a, b) => {
+        const pa = priorityRank[a.priority] ?? 9;
+        const pb = priorityRank[b.priority] ?? 9;
+        return pa - pb;
+      });
+        const queue = document.getElementById('queue');
+      if (!tasks.length) {
+        queue.innerHTML = '<p>没有子任务。</p>';
+        return;
+      }
+      queue.innerHTML = tasks.map(task => `
+        <div class="queue-item">
+          ${badge(task.priority, String(task.priority || '').toLowerCase())}
+          ${badge(workLabels[task.workStatus] || task.workStatus, `work-${task.workStatus}-badge`)}
+          <b>${escapeHtml(task.title || '')}</b>
+          <span class="queue-note">${escapeHtml(task.acceptance || task.why || '')}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderCoverage() {
+      const items = data.coverageReview || [];
+      const coverage = document.getElementById('coverage');
+      if (!items.length) {
+        coverage.innerHTML = '<p>这份图还没有记录二轮覆盖审查。</p>';
+        return;
+      }
+      coverage.innerHTML = items.map(item => `
+        <div class="queue-item">
+          ${badge(item.lens || 'lens')}
+          <b>${escapeHtml(item.finding || '')}</b>
+          <span class="queue-note">${escapeHtml(item.treeChange || '')}</span>
+          ${item.residualRisk ? `<span class="queue-note">${escapeHtml('Residual risk: ' + item.residualRisk)}</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderLegend() {
+      document.getElementById('legend').innerHTML = Object.entries(labels).map(([key, value]) => `
+        <div class="legend-item"><span class="swatch status-${key}"></span>${escapeHtml(value)}</div>
+      `).join('') + Object.entries(workLabels).map(([key, value]) => `
+        <div class="legend-item"><span class="swatch work-${key}-fill"></span>${escapeHtml(value)}</div>
+      `).join('');
+      const statusFilter = document.getElementById('status-filter');
+      Object.entries(labels).forEach(([key, value]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = value;
+        statusFilter.append(option);
+      });
+      const workFilter = document.getElementById('work-filter');
+      Object.entries(workLabels).forEach(([key, value]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = value;
+        workFilter.append(option);
+      });
+    }
+
+    function renderStats() {
+      const m = data.metrics || {};
+      const sc = m.statusCounts || {};
+      const wc = m.workCounts || {};
+      const weakCount = (sc.weak || 0) + (sc.missing || 0) + (sc.risk || 0);
+      const items = [
+        ['节点', m.nodeCount ?? rawNodes.length],
+        ['平均分', m.averageScore ?? '--'],
+        ['施工中', wc.active || 0],
+        ['已修复', wc.done || 0],
+        ['薄弱/缺口/风险', weakCount],
+        ['P0', (m.priorityCounts || {}).P0 || 0]
+      ];
+      document.getElementById('stats').innerHTML = items.map(([label, value]) => `
+        <div class="stat"><b>${escapeHtml(String(value))}</b><span>${escapeHtml(label)}</span></div>
+      `).join('');
+    }
+
+    function renderWorkBoard() {
+      const board = document.getElementById('work-board');
+      const active = rawNodes
+        .filter(node => node.workStatus === 'active')
+        .sort((a, b) => (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9));
+      const done = rawNodes
+        .filter(node => node.workStatus === 'done')
+        .sort((a, b) => String(b.completedAt || '').localeCompare(String(a.completedAt || '')));
+      const next = rawNodes
+        .filter(node => node.workStatus === 'next')
+        .sort((a, b) => (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9));
+      board.innerHTML = `
+        <h2>施工进度</h2>
+        ${workGroup('正在修', active)}
+        ${workGroup('已修复', done.slice(0, 5))}
+        ${workGroup('下一步', next)}
+      `;
+    }
+
+    function showInspectorPanel(panelName) {
+      const name = panelName || 'details';
+      document.querySelectorAll('.inspector-panel').forEach(panel => {
+        panel.hidden = panel.dataset.panel !== name;
+      });
+      document.querySelectorAll('.inspector-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.panelTab === name);
+      });
+      const body = document.querySelector('.inspector-body');
+      if (body) body.scrollTop = 0;
+    }
+
+    function workGroup(title, nodes) {
+      if (!nodes.length) return `<h3>${escapeHtml(title)}</h3><p>暂无。</p>`;
+      return `
+        <h3>${escapeHtml(title)}</h3>
+        ${nodes.map(node => `
+          <div class="queue-item">
+            ${badge(node.priority, String(node.priority || '').toLowerCase())}
+            ${badge(workLabels[node.workStatus] || node.workStatus, `work-${node.workStatus}-badge`)}
+            <b><button type="button" data-focus-node="${escapeHtml(node.id)}">${escapeHtml(node.title || node.id)}</button></b>
+            <span class="queue-note">${escapeHtml(node.workNote || node.nextSubtask || node.summary || '')}</span>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function sectionText(title, value) {
+      if (!value) return '';
+      return `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(value)}</p>`;
+    }
+
+    function sectionList(title, values) {
+      if (!values || !values.length) return '';
+      return `<h3>${escapeHtml(title)}</h3><ul>${values.map(v => `<li>${escapeHtml(v)}</li>`).join('')}</ul>`;
+    }
+
+    function badge(value, cls = '') {
+      if (!value) return '';
+      return `<span class="badge ${escapeHtml(cls)}">${escapeHtml(value)}</span>`;
+    }
+
+    function serializableData() {
+      const clone = JSON.parse(JSON.stringify(data));
+      (clone.nodes || []).forEach(node => {
+        Object.keys(node).forEach(key => {
+          if (key.startsWith('_')) delete node[key];
+        });
+      });
+      clone.project = clone.project || {};
+      clone.project.editedAt = new Date().toISOString();
+      clone.metrics = computeMetrics();
+      return clone;
+    }
+
+    function scheduleSave(message = '已自动保存草稿') {
+      updateSaveStatus('保存中...');
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(async () => {
+        const payload = serializableData();
+        try {
+          localStorage.setItem(draftKey, JSON.stringify(payload));
+          if (fileHandle) await writeBoundFile(payload);
+          updateSaveStatus(fileHandle ? '已自动保存到 JSON' : message);
+        } catch (error) {
+          console.error(error);
+          updateSaveStatus('保存失败');
+        }
+      }, 240);
+    }
+
+    async function writeBoundFile(payload = serializableData()) {
+      if (!fileHandle) return;
+      const writable = await fileHandle.createWritable();
+      await writable.write(JSON.stringify(payload, null, 2));
+      await writable.close();
+    }
+
+    function updateSaveStatus(text) {
+      const status = document.getElementById('save-status');
+      if (status) status.textContent = text;
+    }
+
+    function computeMetrics() {
+      const statusCounts = {};
+      const workCounts = {};
+      const priorityCounts = {};
+      const scores = [];
+      rawNodes.forEach(node => {
+        const status = node.status || 'partial';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+        if (node.workStatus) workCounts[node.workStatus] = (workCounts[node.workStatus] || 0) + 1;
+        if (node.priority) priorityCounts[node.priority] = (priorityCounts[node.priority] || 0) + 1;
+        if (typeof node.score === 'number' && Number.isFinite(node.score)) scores.push(node.score);
+      });
+      return {
+        nodeCount: rawNodes.length,
+        statusCounts,
+        workCounts,
+        priorityCounts,
+        averageScore: scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null
+      };
+    }
+
+    function recomputeMetrics() {
+      data.metrics = computeMetrics();
+    }
+
+    function addChildNode() {
+      if (!editMode) return;
+      const parent = byId.get(activeId) || root;
+      const id = uniqueNodeId('node');
+      const node = {
+        id,
+        parentId: parent?.id,
+        title: '新节点',
+        summary: '填写这个父结果直接需要的子结果。',
+        status: 'partial',
+        priority: 'P0',
+        score: 0,
+        needType: 'capability',
+        localResult: '这个节点作为局部结果成立时是什么。',
+        targetShape: '模拟：<clean_placeholder_output>。',
+        directCauseForParent: '说明父结果为什么直接需要这个子结果。',
+        edgeProof: '如果缺少这个子结果，父结果哪里不成立。'
+      };
+      rawNodes.push(node);
+      rebuildIndexes();
+      activeId = id;
+      recomputeMetrics();
+      renderStats();
+      renderMap();
+      renderDetails();
+      scheduleSave('已自动保存新节点');
+    }
+
+    function uniqueNodeId(prefix) {
+      let base = `${prefix}:${Date.now().toString(36)}`;
+      let id = base;
+      let index = 1;
+      while (byId.has(id)) {
+        id = `${base}-${index}`;
+        index += 1;
+      }
+      return id;
+    }
+
+    function clearManualLayout() {
+      data.editor.positions = {};
+      renderMap();
+      scheduleSave('已自动保存自动布局');
+    }
+
+    function exportJson() {
+      const payload = JSON.stringify(serializableData(), null, 2);
+      const blob = new Blob([payload], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'outcome-tree.edited.json';
+      document.body.append(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      updateSaveStatus('已导出 JSON');
+    }
+
+    async function bindJsonFile() {
+      if (!window.showOpenFilePicker) {
+        updateSaveStatus('当前浏览器不支持绑定文件');
+        return;
+      }
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{ description: 'Outcome tree JSON', accept: { 'application/json': ['.json'] } }]
+        });
+        fileHandle = handle;
+        await writeBoundFile();
+        updateSaveStatus('已绑定并写回 JSON');
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          console.error(error);
+          updateSaveStatus('绑定失败');
+        }
+      }
+    }
+
+    function discardDraft() {
+      localStorage.removeItem(draftKey);
+      localStorage.removeItem(draftBaseKey);
+      Object.keys(data).forEach(key => delete data[key]);
+      Object.assign(data, JSON.parse(JSON.stringify(embeddedData)));
+      data.editor = data.editor || {};
+      data.editor.positions = data.editor.positions || {};
+      layerLabels = data.mapLayers || layerLabels;
+      rawNodes.splice(0, rawNodes.length, ...(data.nodes || []));
+      data.nodes = rawNodes;
+      rebuildIndexes();
+      activeId = root ? root.id : null;
+      recomputeMetrics();
+      renderStats();
+      renderMap();
+      renderDetails();
+      updateSaveStatus('已丢弃本地草稿');
+      draftNotice = '只读';
+    }
+
+    function screenToWorld(clientX, clientY) {
+      const rect = map.getBoundingClientRect();
+      return {
+        x: (clientX - rect.left - transform.x) / transform.k,
+        y: (clientY - rect.top - transform.y) / transform.k
+      };
+    }
+
+    function zoomAt(clientX, clientY, factor) {
+      const rect = map.getBoundingClientRect();
+      const px = clientX - rect.left;
+      const py = clientY - rect.top;
+      const oldK = transform.k;
+      const nextK = clamp(oldK * factor, 0.18, 2.6);
+      const worldX = (px - transform.x) / oldK;
+      const worldY = (py - transform.y) / oldK;
+      transform.x = px - worldX * nextK;
+      transform.y = py - worldY * nextK;
+      transform.k = nextK;
+      applyTransform();
+    }
+
+    function fitMap() {
+      const rect = map.getBoundingClientRect();
+      const pad = 82;
+      const scale = Math.min(
+        (rect.width - pad) / Math.max(bounds.width, 1),
+        (rect.height - pad) / Math.max(bounds.height, 1),
+        1.18
+      );
+      transform.k = Math.max(0.18, scale);
+      transform.x = (rect.width - bounds.width * transform.k) / 2;
+      transform.y = (rect.height - bounds.height * transform.k) / 2;
+      applyTransform();
+    }
+
+    function applyTransform() {
+      viewport.setAttribute('transform', `translate(${transform.x},${transform.y}) scale(${transform.k})`);
+      updateMiniViewport();
+    }
+
+    function renderMiniMap() {
+      clear(mini);
+      const miniW = 220;
+      const miniH = 142;
+      mini.setAttribute('viewBox', `0 0 ${miniW} ${miniH}`);
+      const scale = Math.min((miniW - 18) / bounds.width, (miniH - 24) / bounds.height);
+      const ox = 9;
+      const oy = 19;
+      rawNodes.forEach(node => {
+        mini.append(el('rect', {
+          x: ox + node._x * scale,
+          y: oy + node._y * scale,
+          width: Math.max(3, nodeW * scale),
+          height: Math.max(2, nodeH * scale),
+          rx: 1.4,
+          fill: statusColor(node.status),
+          opacity: node.id === activeId ? 1 : 0.62
+        }));
+      });
+      mini.append(el('rect', {
+        id: 'mini-viewport',
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        fill: 'none',
+        stroke: '#111827',
+        'stroke-width': 1.4
+      }));
+      mini.dataset.scale = scale;
+      mini.dataset.ox = ox;
+      mini.dataset.oy = oy;
+      updateMiniViewport();
+    }
+
+    function updateMiniViewport() {
+      const box = document.getElementById('mini-viewport');
+      if (!box) return;
+      const scale = Number(mini.dataset.scale || 1);
+      const ox = Number(mini.dataset.ox || 0);
+      const oy = Number(mini.dataset.oy || 0);
+      const rect = map.getBoundingClientRect();
+      const wx = -transform.x / transform.k;
+      const wy = -transform.y / transform.k;
+      const ww = rect.width / transform.k;
+      const wh = rect.height / transform.k;
+      box.setAttribute('x', ox + wx * scale);
+      box.setAttribute('y', oy + wy * scale);
+      box.setAttribute('width', Math.max(6, ww * scale));
+      box.setAttribute('height', Math.max(6, wh * scale));
+    }
+
+    function statusColor(status) {
+      return ({
+        target: '#0f766e',
+        ruler: '#2f63b7',
+        exists: '#2f7d32',
+        partial: '#b45f06',
+        weak: '#b42318',
+        missing: '#7a3db8',
+        risk: '#bd1550',
+        done: '#59667a'
+      })[status || 'partial'] || '#b45f06';
+    }
+
+    function el(name, attrs = {}) {
+      const node = document.createElementNS(svgNS, name);
+      Object.entries(attrs).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) node.setAttribute(key, value);
+      });
+      return node;
+    }
+
+    function clear(node) {
+      while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    }
+
+    map.addEventListener('wheel', event => {
+      event.preventDefault();
+      zoomAt(event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 0.89);
+    }, { passive: false });
+    map.addEventListener('mousedown', event => {
+      if (event.target.closest && event.target.closest('.map-node')) return;
+      isDragging = true;
+      dragStart = { x: event.clientX, y: event.clientY, tx: transform.x, ty: transform.y };
+      map.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', event => {
+      if (nodeDrag) {
+        const point = screenToWorld(event.clientX, event.clientY);
+        const node = byId.get(nodeDrag.id);
+        if (!node) return;
+        const x = Math.round(nodeDrag.nodeX + point.x - nodeDrag.startX);
+        const y = Math.round(nodeDrag.nodeY + point.y - nodeDrag.startY);
+        data.editor.positions[node.id] = { x, y };
+        node._x = x;
+        node._y = y;
+        renderMap();
+        return;
+      }
+      if (!isDragging || !dragStart) return;
+      transform.x = dragStart.tx + event.clientX - dragStart.x;
+      transform.y = dragStart.ty + event.clientY - dragStart.y;
+      applyTransform();
+    });
+    window.addEventListener('mouseup', () => {
+      if (nodeDrag) {
+        nodeDrag = null;
+        scheduleSave('已自动保存布局');
+      }
+      isDragging = false;
+      dragStart = null;
+      map.classList.remove('dragging');
+    });
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      const rect = map.getBoundingClientRect();
+      zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1.18);
+    });
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      const rect = map.getBoundingClientRect();
+      zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 0.84);
+    });
+    document.getElementById('fit').addEventListener('click', fitMap);
+    document.getElementById('reset').addEventListener('click', () => {
+      document.getElementById('search').value = '';
+      document.getElementById('status-filter').value = 'all';
+      document.getElementById('work-filter').value = 'all';
+      document.getElementById('priority-filter').value = 'all';
+      activeId = root ? root.id : null;
+      renderMap();
+      renderDetails();
+      showInspectorPanel('details');
+      fitMap();
+    });
+    document.getElementById('edit-toggle').addEventListener('click', () => {
+      editMode = !editMode;
+      document.body.classList.toggle('edit-mode', editMode);
+      document.getElementById('edit-toggle').textContent = editMode ? '退出编辑' : '编辑';
+      updateSaveStatus(editMode ? '编辑中，本地自动保存' : '只读');
+      renderDetails();
+      renderMap();
+    });
+    document.getElementById('add-child').addEventListener('click', addChildNode);
+    document.getElementById('auto-layout').addEventListener('click', clearManualLayout);
+    document.getElementById('bind-json').addEventListener('click', bindJsonFile);
+    document.getElementById('export-json').addEventListener('click', exportJson);
+    document.getElementById('discard-draft').addEventListener('click', discardDraft);
+    document.getElementById('search').addEventListener('input', () => {
+      updateVisibility();
+      updateSelection();
+    });
+    document.getElementById('status-filter').addEventListener('change', () => {
+      updateVisibility();
+      updateSelection();
+    });
+    document.getElementById('work-filter').addEventListener('change', () => {
+      updateVisibility();
+      updateSelection();
+    });
+    document.getElementById('priority-filter').addEventListener('change', () => {
+      updateVisibility();
+      updateSelection();
+    });
+    document.getElementById('work-board').addEventListener('click', event => {
+      const button = event.target.closest && event.target.closest('button[data-focus-node]');
+      if (!button) return;
+      activeId = button.dataset.focusNode;
+      updateSelection();
+      renderDetails();
+      showInspectorPanel('details');
+    });
+    document.querySelectorAll('.inspector-tab').forEach(tab => {
+      tab.addEventListener('click', () => showInspectorPanel(tab.dataset.panelTab));
+    });
+    window.addEventListener('resize', () => {
+      fitMap();
+      renderMiniMap();
+    });
+
+    document.getElementById('page-title').textContent = data.goal?.title || data.project?.name || 'Outcome Map';
+    document.getElementById('page-subtitle').textContent = data.goal?.summary || data.project?.description || '';
+    recomputeMetrics();
+    renderStats();
+    renderLegend();
+    renderWorkBoard();
+    renderQueue();
+    renderCoverage();
+    renderMap();
+    renderDetails();
+    showInspectorPanel('details');
+    updateSaveStatus(draftNotice || (loadedDraft ? '已载入本版本草稿' : '只读'));
+    requestAnimationFrame(fitMap);
+  </script>
+</body>
+</html>

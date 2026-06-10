@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.1",
+  "mode": "compact",
+  "user_request": "我锻炼练背怎么练，我想恢复中立位体态",
+  "root_framing": {
+    "raw_user_ask": "我锻炼练背怎么练，我想恢复中立位体态",
+    "selected_root_outcome": "通过练背恢复更接近中立位的体态",
+    "root_admission": "用户目标是体态更接近中立位，不是随便列背部训练动作。",
+    "domain_fit": "这是运动康复和力量训练问题，需要用体态与疼痛反应判断。",
+    "proof_standard_reason": "证明标准应该验证中立位体态是否改善。",
+    "boundary": "不把目标缩成单纯练背增肌，也不替代线下康复评估。",
+    "misread_risk": "如果定根错误，会忽略中立位控制和代偿风险。",
+    "clarification_needed": false,
+    "clarification_question": ""
+  },
+  "root_outcome": "通过练背恢复更接近中立位的体态",
+  "domain": "运动康复 + 力量训练",
+  "domain_ruler": "头颈、肋骨、骨盆和肩胛能自然叠放。",
+  "depth_target": 4,
+  "explicit_depth_requested": false,
+  "width_policy": {
+    "min_children_per_parent": 1,
+    "max_children_per_parent": 4,
+    "max_total_nodes": 80,
+    "under_min_strategy": "mark_deferred",
+    "overflow_strategy": "expand_weakest_branches_first"
+  },
+  "proof_standard": [
+    "侧面照片更接近中立位。"
+  ],
+  "nodes": [
+    {
+      "id": "root",
+      "layer": 1,
+      "result": "通过练背恢复更接近中立位的体态",
+      "parent_id": null,
+      "is_leaf": false,
+      "proof_check": "看侧面照片。"
+    },
+    {
+      "id": "find-neutral",
+      "layer": 2,
+      "result": "能找到中立位",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "靠墙站姿检查。"
+    },
+    {
+      "id": "thoracic-motion",
+      "layer": 2,
+      "result": "胸椎有足够伸展和旋转",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "墙滑和开书式。"
+    }
+  ],
+  "edges": [
+    {
+      "parent_id": "root",
+      "child_id": "find-neutral",
+      "parent_needs_child": "恢复中立位体态首先需要知道中立位在哪里。",
+      "failure_if_absent": "缺了会把错误姿势练得更强。",
+      "proof_or_action": "靠墙站姿检查。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "root",
+      "child_id": "thoracic-motion",
+      "parent_needs_child": "恢复中立位体态需要胸椎能打开。",
+      "failure_if_absent": "缺了会用腰椎代偿。",
+      "proof_or_action": "墙滑。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    }
+  ],
+  "weakest_gap": "只做了一级拆解。",
+  "next_action": "继续递归。",
+  "residual_risk": "当前树没有证明多层果因。"
+}

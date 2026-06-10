@@ -1,0 +1,4 @@
+interface:
+  display_name: "Outcome Backward Working"
+  short_description: "Recursively work backward from the target outcome"
+  default_prompt: "Use outcome-backward: 3 layers by default, 5 causes per expanded parent, render edge table."

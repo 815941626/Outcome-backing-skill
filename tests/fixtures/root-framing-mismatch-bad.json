@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.1",
+  "mode": "compact",
+  "user_request": "我想做伯爵红茶饼干，要怎么做？",
+  "root_framing": {
+    "raw_user_ask": "我想做伯爵红茶饼干，要怎么做？",
+    "selected_root_outcome": "随便列一个普通饼干配方",
+    "root_admission": "这个字段故意写错，用来证明 validator 会拒绝和 root_outcome 不一致的定根。",
+    "domain_fit": "这是烘焙成品问题，需要用成品质量判断。",
+    "proof_standard_reason": "证明标准应该验证最终成品，不只是验证动作。",
+    "boundary": "不应该把伯爵红茶饼干误读成普通饼干。",
+    "misread_risk": "如果定根错误，后续结果树会沿着错误目标递归。",
+    "clarification_needed": false,
+    "clarification_question": ""
+  },
+  "root_outcome": "做出香气清楚、酥松、不过甜不过苦、能复现的伯爵红茶饼干",
+  "domain": "Baking / pastry product development",
+  "domain_ruler": "成品质量，而不是配方文本是否完整。",
+  "depth_target": 2,
+  "width_policy": {
+    "min_children_per_parent": 1,
+    "max_children_per_parent": 1,
+    "max_total_nodes": 10,
+    "under_min_strategy": "mark_deferred",
+    "overflow_strategy": "expand_weakest_branches_first"
+  },
+  "proof_standard": ["成品能证明伯爵红茶饼干成立。"],
+  "nodes": [
+    {
+      "id": "root",
+      "layer": 1,
+      "result": "做出香气清楚、酥松、不过甜不过苦、能复现的伯爵红茶饼干",
+      "parent_id": null,
+      "is_leaf": false,
+      "proof_check": "成品验收。"
+    },
+    {
+      "id": "aroma",
+      "layer": 2,
+      "result": "伯爵茶香成立",
+      "parent_id": "root",
+      "is_leaf": true,
+      "leaf_reason": "directly actionable leaf: test aroma in finished cookie.",
+      "proof_check": "冷却后有茶香。"
+    }
+  ],
+  "edges": [
+    {
+      "parent_id": "root",
+      "child_id": "aroma",
+      "parent_needs_child": "伯爵红茶饼干需要伯爵茶香成立。",
+      "failure_if_absent": "缺了会变成普通饼干。",
+      "proof_or_action": "检查冷却后的茶香。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    }
+  ],
+  "next_action": "这份 fixture 应该被 root framing gate 拒绝。",
+  "residual_risk": "无。"
+}

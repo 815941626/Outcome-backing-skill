@@ -1,0 +1,252 @@
+{
+  "schema_version": "1.1",
+  "mode": "compact",
+  "user_request": "我锻炼练背怎么练，我想恢复中立位体态",
+  "root_framing": {
+    "raw_user_ask": "我锻炼练背怎么练，我想恢复中立位体态",
+    "selected_root_outcome": "通过练背恢复更接近中立位的体态",
+    "root_admission": "用户真正要的不是随便练背，而是训练后体态更接近中立位且不加重代偿。",
+    "domain_fit": "这是运动康复和力量训练问题，需要用体态叠放、疼痛反应和代偿控制判断。",
+    "proof_standard_reason": "证明标准包含侧面照片、24 小时反应和发力位置，能验证中立位训练是否有效。",
+    "boundary": "不把目标缩成背部肌肉训练清单；不替代疼痛或麻木时的线下康复评估。",
+    "misread_risk": "容易误读成单纯练背增肌，导致忽略肋骨骨盆叠放和胸椎活动度。",
+    "clarification_needed": false,
+    "clarification_question": ""
+  },
+  "root_outcome": "通过练背恢复更接近中立位的体态",
+  "domain": "运动康复 + 力量训练",
+  "domain_ruler": "头颈、肋骨、骨盆和肩胛能自然叠放，训练后 24 小时没有疼痛、麻木或代偿加重。",
+  "depth_target": 4,
+  "explicit_depth_requested": false,
+  "width_policy": {
+    "min_children_per_parent": 1,
+    "max_children_per_parent": 4,
+    "max_total_nodes": 80,
+    "under_min_strategy": "mark_deferred",
+    "overflow_strategy": "expand_weakest_branches_first"
+  },
+  "proof_standard": [
+    "侧面照片中耳、肩、髋更容易叠齐，不用硬挺胸。",
+    "训练后 24 小时没有疼痛、麻木或放射痛。",
+    "主要发力在中背、后肩、核心和臀部，不是脖子和腰代偿。"
+  ],
+  "nodes": [
+    {
+      "id": "root",
+      "layer": 1,
+      "result": "通过练背恢复更接近中立位的体态",
+      "parent_id": null,
+      "is_leaf": false,
+      "proof_check": "每周侧面照片和训练后 24 小时反应。"
+    },
+    {
+      "id": "find-neutral",
+      "layer": 2,
+      "result": "能找到中立位",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "靠墙站姿和 90/90 呼吸能重复找到肋骨骨盆叠放。"
+    },
+    {
+      "id": "thoracic-motion",
+      "layer": 2,
+      "result": "胸椎有足够伸展和旋转",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "墙滑和开书式时不靠腰椎代偿。"
+    },
+    {
+      "id": "rib-pelvis-stack",
+      "layer": 3,
+      "result": "能感知肋骨和骨盆叠放",
+      "parent_id": "find-neutral",
+      "is_leaf": false,
+      "proof_check": "90/90 呼吸时腰不拱、肋骨不外翻。"
+    },
+    {
+      "id": "neutral-under-load",
+      "layer": 3,
+      "result": "能在低负荷动作中重复找回中立位",
+      "parent_id": "find-neutral",
+      "is_leaf": false,
+      "proof_check": "死虫和鸟狗中姿势不丢。"
+    },
+    {
+      "id": "extend-without-lumbar",
+      "layer": 3,
+      "result": "胸椎能伸展而不是腰椎后仰",
+      "parent_id": "thoracic-motion",
+      "is_leaf": false,
+      "proof_check": "墙滑时腰不塌。"
+    },
+    {
+      "id": "rotate-through-t-spine",
+      "layer": 3,
+      "result": "胸椎能左右旋转",
+      "parent_id": "thoracic-motion",
+      "is_leaf": false,
+      "proof_check": "开书式每侧 8 次，肩不乱扭。"
+    },
+    {
+      "id": "breathing-reset",
+      "layer": 4,
+      "result": "用 90/90 呼吸重置肋骨骨盆",
+      "parent_id": "rib-pelvis-stack",
+      "is_leaf": true,
+      "leaf_reason": "可直接行动的叶子：动作本身就是验证和训练。",
+      "proof_check": "2 组，每组 5 次慢呼吸，腰不拱。"
+    },
+    {
+      "id": "dead-bug-check",
+      "layer": 4,
+      "result": "用死虫验证低负荷中立控制",
+      "parent_id": "neutral-under-load",
+      "is_leaf": true,
+      "leaf_reason": "可直接行动的叶子：动作和证明都清楚。",
+      "proof_check": "每侧 8 次，腰不离地、不耸肩。"
+    },
+    {
+      "id": "wall-slide-check",
+      "layer": 4,
+      "result": "用墙滑验证胸椎伸展不靠腰代偿",
+      "parent_id": "extend-without-lumbar",
+      "is_leaf": true,
+      "leaf_reason": "可直接行动的叶子：继续拆分不会改变训练动作。",
+      "proof_check": "3 组 8 次，肋骨不外翻。"
+    },
+    {
+      "id": "open-book-check",
+      "layer": 4,
+      "result": "用开书式建立胸椎旋转余量",
+      "parent_id": "rotate-through-t-spine",
+      "is_leaf": true,
+      "leaf_reason": "可直接行动的叶子：动作本身验证胸椎旋转。",
+      "proof_check": "每侧 8 次，呼吸顺、肩不耸。"
+    }
+  ],
+  "edges": [
+    {
+      "parent_id": "root",
+      "child_id": "find-neutral",
+      "parent_needs_child": "恢复中立位体态首先需要知道中立位在哪里。",
+      "failure_if_absent": "缺了会把挺腰、耸肩、脖子前伸练得更强。",
+      "proof_or_action": "靠墙站姿检查和 90/90 呼吸。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "root",
+      "child_id": "thoracic-motion",
+      "parent_needs_child": "恢复中立位体态需要胸椎能打开，肩和头颈才有空间回位。",
+      "failure_if_absent": "缺了会用腰椎后仰假装挺胸。",
+      "proof_or_action": "墙滑、泡沫轴胸椎伸展、开书式。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "find-neutral",
+      "child_id": "rib-pelvis-stack",
+      "parent_needs_child": "能找到中立位需要能感知肋骨和骨盆叠放。",
+      "failure_if_absent": "缺了会把中立位误判成挺胸和塌腰。",
+      "proof_or_action": "90/90 呼吸。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "find-neutral",
+      "child_id": "neutral-under-load",
+      "parent_needs_child": "能找到中立位需要在动作中找回，而不是只会静态摆姿势。",
+      "failure_if_absent": "缺了会一划船或一训练就丢掉姿势。",
+      "proof_or_action": "死虫、鸟狗。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "thoracic-motion",
+      "child_id": "extend-without-lumbar",
+      "parent_needs_child": "胸椎伸展结果需要伸展来源在胸椎而不是腰椎。",
+      "failure_if_absent": "缺了会腰越来越紧，体态看似变直但实际是代偿。",
+      "proof_or_action": "墙滑时肋骨不外翻。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "thoracic-motion",
+      "child_id": "rotate-through-t-spine",
+      "parent_needs_child": "胸椎活动度需要伸展和旋转都能发生。",
+      "failure_if_absent": "缺了会用肩膀乱扭或腰椎旋转代偿。",
+      "proof_or_action": "开书式每侧 8 次。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "rib-pelvis-stack",
+      "child_id": "breathing-reset",
+      "parent_needs_child": "肋骨骨盆叠放需要一个低风险动作让用户能感知位置。",
+      "failure_if_absent": "缺了就只剩抽象口令，用户不知道做没做对。",
+      "proof_or_action": "90/90 呼吸 2 组。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "neutral-under-load",
+      "child_id": "dead-bug-check",
+      "parent_needs_child": "低负荷中立控制需要一个动作验证姿势能不能在四肢移动时保持。",
+      "failure_if_absent": "缺了无法证明中立位能迁移到训练动作。",
+      "proof_or_action": "死虫每侧 8 次。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "extend-without-lumbar",
+      "child_id": "wall-slide-check",
+      "parent_needs_child": "胸椎伸展不靠腰代偿需要墙滑这种可观察动作。",
+      "failure_if_absent": "缺了会继续用塌腰完成手臂上举。",
+      "proof_or_action": "墙滑 3 组。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    },
+    {
+      "parent_id": "rotate-through-t-spine",
+      "child_id": "open-book-check",
+      "parent_needs_child": "胸椎旋转结果需要一个明确旋转动作来建立和验证。",
+      "failure_if_absent": "缺了无法区分胸椎旋转和肩腰代偿。",
+      "proof_or_action": "开书式每侧 8 次。",
+      "child_admission": {
+        "direct_condition": true,
+        "mechanism_not_label": true,
+        "proof_named": true
+      }
+    }
+  ],
+  "weakest_gap": "用户还没有账户式的身体评估数据，只能先用低风险动作验证中立位控制。",
+  "next_action": "先做每日 90/90 呼吸、死虫、墙滑和开书式，观察 2 周。",
+  "residual_risk": "如果有疼痛、麻木、放射痛或明显体态结构问题，需要线下康复评估。"
+}

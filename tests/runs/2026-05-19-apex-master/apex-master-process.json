@@ -1,0 +1,445 @@
+{
+  "schema_version": "1.0",
+  "mode": "focused",
+  "user_request": "我想上 Apex 大师，我要怎么办，练习什么。每层结果都要看。",
+  "root_outcome": "稳定打到 Apex Legends 大师段位",
+  "domain": "Apex Legends ranked improvement / competitive FPS training",
+  "domain_ruler": "大师段位不是单场爆杀，而是在当前排位规则下长期保持正 RP：少送高成本局、稳定进前 5、能把优势团转成击杀和名次。",
+  "depth_target": 4,
+  "explicit_depth_requested": false,
+  "width_policy": {
+    "max_children_per_parent": 5,
+    "overflow_strategy": "expand_weakest_branches_first"
+  },
+  "proof_standard": [
+    "当前赛季目标至少到 16000 RP 的 Master floor。",
+    "连续 50 场 ranked 统计为正 RP，且 10 场 rolling average 不连续为负。",
+    "钻石段以后每局有明确目标：保底名次、可接团、可撤退、可复盘。",
+    "死亡录像中 70% 以上死亡能归因到可修动作，而不是只怪队友或运气。"
+  ],
+  "nodes": [
+    {
+      "id": "root",
+      "layer": 1,
+      "result": "稳定打到 Apex Legends 大师段位",
+      "parent_id": null,
+      "is_leaf": false,
+      "proof_check": "达到 Master floor，并且上分过程不是靠偶然连胜。"
+    },
+    {
+      "id": "rp-model-positive",
+      "layer": 2,
+      "result": "排位 RP 模型长期为正",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "最近 50 场 ranked 平均净 RP > 0。"
+    },
+    {
+      "id": "fight-conversion",
+      "layer": 2,
+      "result": "优势团能稳定转化为击杀/名次",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "先手破甲或先倒后，团战胜率明显高于 50%。"
+    },
+    {
+      "id": "macro-survival",
+      "layer": 2,
+      "result": "中后期位置和转点不把队伍送死",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "前 10 之前非必要死亡率下降，前 5 率稳定提高。"
+    },
+    {
+      "id": "team-system",
+      "layer": 2,
+      "result": "队伍打法和沟通稳定",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "每局开打前能说明谁先手、谁补枪、谁断后。"
+    },
+    {
+      "id": "review-loop",
+      "layer": 2,
+      "result": "训练复盘能持续修正弱点",
+      "parent_id": "root",
+      "is_leaf": false,
+      "proof_check": "每周只追 1-2 个弱点，并能在数据里看到改善。"
+    },
+    {
+      "id": "rp-entry-risk",
+      "layer": 3,
+      "result": "理解高段入场成本并避免无意义早死",
+      "parent_id": "rp-model-positive",
+      "is_leaf": false,
+      "proof_check": "钻石以上 14 名前死亡率下降。"
+    },
+    {
+      "id": "rp-top5-plan",
+      "layer": 3,
+      "result": "每局都有进前 5 的路线",
+      "parent_id": "rp-model-positive",
+      "is_leaf": false,
+      "proof_check": "跳点后 2 分钟内能说出第一转点和备选转点。"
+    },
+    {
+      "id": "aim-duel-baseline",
+      "layer": 3,
+      "result": "近中距离对枪不低于当前段位平均",
+      "parent_id": "fight-conversion",
+      "is_leaf": false,
+      "proof_check": "R5/靶场跟枪、peek、喷子收割有稳定命中。"
+    },
+    {
+      "id": "teamfight-sequence",
+      "layer": 3,
+      "result": "团战顺序正确：打破绽、补枪、控复活/拉人",
+      "parent_id": "fight-conversion",
+      "is_leaf": false,
+      "proof_check": "先破甲/先倒后不因乱追被反打。"
+    },
+    {
+      "id": "rotation-map",
+      "layer": 3,
+      "result": "当前地图池有固定转点脚本",
+      "parent_id": "macro-survival",
+      "is_leaf": false,
+      "proof_check": "Broken Moon / Kings Canyon / Olympus 各有 3 条常用安全转点。"
+    },
+    {
+      "id": "endgame-space",
+      "layer": 3,
+      "result": "决赛圈能占空间而不是被动等死",
+      "parent_id": "macro-survival",
+      "is_leaf": false,
+      "proof_check": "第 4 圈以后死亡多来自资源/位置判断，而不是无信息乱走。"
+    },
+    {
+      "id": "roles-composition",
+      "layer": 3,
+      "result": "角色池服务于上分打法",
+      "parent_id": "team-system",
+      "is_leaf": false,
+      "proof_check": "固定 2-3 个主用传奇，不每局随机换打法。"
+    },
+    {
+      "id": "comms-protocol",
+      "layer": 3,
+      "result": "沟通只传递决策信息",
+      "parent_id": "team-system",
+      "is_leaf": false,
+      "proof_check": "交战时能用短句报血量、位置、技能、撤退。"
+    },
+    {
+      "id": "death-taxonomy",
+      "layer": 3,
+      "result": "每次死亡能分类归因",
+      "parent_id": "review-loop",
+      "is_leaf": false,
+      "proof_check": "死亡原因能落到可练项：枪法、位置、时机、信息、沟通。"
+    },
+    {
+      "id": "weekly-block",
+      "layer": 3,
+      "result": "每周训练块足够窄",
+      "parent_id": "review-loop",
+      "is_leaf": false,
+      "proof_check": "一周只改一个主弱点，避免什么都练。"
+    },
+    {
+      "id": "early-death-rule",
+      "layer": 4,
+      "result": "14 名前不接无信息 50/50 团",
+      "parent_id": "rp-entry-risk",
+      "is_leaf": true,
+      "leaf_reason": "可直接执行的比赛规则。",
+      "proof_check": "复盘统计早死局是否来自无信息硬接。"
+    },
+    {
+      "id": "top5-route-drill",
+      "layer": 4,
+      "result": "每个跳点练 3 条前 5 路线",
+      "parent_id": "rp-top5-plan",
+      "is_leaf": true,
+      "leaf_reason": "可直接练习的地图脚本。",
+      "proof_check": "进圈前能说出主路线、备选路线、撤退路线。"
+    },
+    {
+      "id": "aim-block",
+      "layer": 4,
+      "result": "每天 20 分钟近中距离枪法块",
+      "parent_id": "aim-duel-baseline",
+      "is_leaf": true,
+      "leaf_reason": "可直接行动的训练块。",
+      "proof_check": "R-99/CAR/Flatline/PK 或 Mastiff 在 10-40m 命中稳定。"
+    },
+    {
+      "id": "focus-fire-drill",
+      "layer": 4,
+      "result": "练先手破甲后的集火和补枪",
+      "parent_id": "teamfight-sequence",
+      "is_leaf": true,
+      "leaf_reason": "可直接在 ranked/自定义复盘中检查。",
+      "proof_check": "先手优势团至少能换到击倒或安全撤退。"
+    },
+    {
+      "id": "map-script-review",
+      "layer": 4,
+      "result": "按当前地图池建立转点脚本",
+      "parent_id": "rotation-map",
+      "is_leaf": true,
+      "leaf_reason": "可直接执行的地图复盘动作。",
+      "proof_check": "每张图至少记录 3 个安全转点和 3 个禁走点。"
+    },
+    {
+      "id": "ring4-space-drill",
+      "layer": 4,
+      "result": "练第 4 圈前抢边/卡边/换位",
+      "parent_id": "endgame-space",
+      "is_leaf": true,
+      "leaf_reason": "可直接复盘的终局训练目标。",
+      "proof_check": "第 4 圈以后不再因为无掩体横穿死亡。"
+    },
+    {
+      "id": "legend-pool-lock",
+      "layer": 4,
+      "result": "锁定 2-3 个适配当前赛季的传奇池",
+      "parent_id": "roles-composition",
+      "is_leaf": true,
+      "leaf_reason": "可直接执行的选择规则。",
+      "proof_check": "30 场内不随机换主定位。"
+    },
+    {
+      "id": "five-word-comms",
+      "layer": 4,
+      "result": "固定五类报点：血量、位置、技能、目标、撤退",
+      "parent_id": "comms-protocol",
+      "is_leaf": true,
+      "leaf_reason": "可直接训练的沟通协议。",
+      "proof_check": "团战语音减少废话，队友能立刻执行。"
+    },
+    {
+      "id": "death-log",
+      "layer": 4,
+      "result": "每晚记录 5 次死亡的第一原因",
+      "parent_id": "death-taxonomy",
+      "is_leaf": true,
+      "leaf_reason": "可直接执行的复盘动作。",
+      "proof_check": "一周后能看到最高频死因。"
+    },
+    {
+      "id": "one-weakness-week",
+      "layer": 4,
+      "result": "一周只练一个主弱点",
+      "parent_id": "weekly-block",
+      "is_leaf": true,
+      "leaf_reason": "可直接执行的训练周期。",
+      "proof_check": "下周前只用该弱点指标判断训练是否有效。"
+    }
+  ],
+  "edges": [
+    {
+      "parent_id": "root",
+      "child_id": "rp-model-positive",
+      "parent_needs_child": "上大师需要长期正 RP，而不是靠几局高击杀偶然上分。",
+      "failure_if_absent": "缺了会在钻石以上被高入场成本磨回去。",
+      "proof_or_action": "统计 50 场 ranked 平均净 RP。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "root",
+      "child_id": "fight-conversion",
+      "parent_needs_child": "上大师需要能把可接团转成击杀和名次。",
+      "failure_if_absent": "缺了会只会苟分，遇到卡点和决赛圈没有突破能力。",
+      "proof_or_action": "统计先手破甲/先倒后的团战胜率。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "root",
+      "child_id": "macro-survival",
+      "parent_needs_child": "上大师需要中后期不被转点和位置错误白送。",
+      "failure_if_absent": "缺了会经常在前 10 前死亡，RP 期望变负。",
+      "proof_or_action": "复盘前 10 前死亡原因和前 5 率。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "root",
+      "child_id": "team-system",
+      "parent_needs_child": "上大师需要稳定队伍系统，尤其高段不能三个人各玩各的。",
+      "failure_if_absent": "缺了会优势团打散，撤退没人跟，补枪不到位。",
+      "proof_or_action": "每局记录角色职责和团战沟通是否执行。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "root",
+      "child_id": "review-loop",
+      "parent_needs_child": "上大师需要持续修正弱点，否则卡在当前段位。",
+      "failure_if_absent": "缺了会每天打很多局但同样方式死亡。",
+      "proof_or_action": "每周死亡归因和一个主训练目标。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "rp-model-positive",
+      "child_id": "rp-entry-risk",
+      "parent_needs_child": "正 RP 需要控制早死风险，尤其高段入场成本高。",
+      "failure_if_absent": "缺了会几局早死吃掉一天上分。",
+      "proof_or_action": "统计 14 名前死亡率。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "rp-model-positive",
+      "child_id": "rp-top5-plan",
+      "parent_needs_child": "正 RP 需要名次保底，不能只靠击杀。",
+      "failure_if_absent": "缺了会在击杀少的局亏太多。",
+      "proof_or_action": "每局落地后说出前 5 路线。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "fight-conversion",
+      "child_id": "aim-duel-baseline",
+      "parent_needs_child": "优势团转化需要基本对枪能力兜底。",
+      "failure_if_absent": "缺了会有先手也打不死人。",
+      "proof_or_action": "每天固定近中距离枪法训练。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "fight-conversion",
+      "child_id": "teamfight-sequence",
+      "parent_needs_child": "优势团转化需要正确团战顺序，不只是个人枪硬。",
+      "failure_if_absent": "缺了会破甲后乱追，被第三方或倒地反打。",
+      "proof_or_action": "复盘先手团是否集火和补枪。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "macro-survival",
+      "child_id": "rotation-map",
+      "parent_needs_child": "中后期生存需要当前地图池的转点脚本。",
+      "failure_if_absent": "缺了会临场乱走，被卡边或第三方夹死。",
+      "proof_or_action": "每图记录安全转点和禁走点。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "macro-survival",
+      "child_id": "endgame-space",
+      "parent_needs_child": "中后期生存需要终局空间处理能力。",
+      "failure_if_absent": "缺了会活到后面但没有位置，最终白给。",
+      "proof_or_action": "复盘第 4 圈以后死亡位置。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "team-system",
+      "child_id": "roles-composition",
+      "parent_needs_child": "稳定打法需要稳定角色定位。",
+      "failure_if_absent": "缺了每局节奏不同，训练无法积累。",
+      "proof_or_action": "锁定 2-3 个主用传奇。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "team-system",
+      "child_id": "comms-protocol",
+      "parent_needs_child": "稳定队伍系统需要可执行的沟通。",
+      "failure_if_absent": "缺了会信息噪音大，队友无法同步动作。",
+      "proof_or_action": "固定五类报点。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "review-loop",
+      "child_id": "death-taxonomy",
+      "parent_needs_child": "复盘修正需要知道自己到底为什么死。",
+      "failure_if_absent": "缺了会把所有失败归因给队友或运气。",
+      "proof_or_action": "每晚记录 5 次死亡第一原因。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "review-loop",
+      "child_id": "weekly-block",
+      "parent_needs_child": "复盘修正需要窄训练块，否则不会形成可见进步。",
+      "failure_if_absent": "缺了会什么都练一点，什么都没变。",
+      "proof_or_action": "一周只改一个主弱点。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "rp-entry-risk",
+      "child_id": "early-death-rule",
+      "parent_needs_child": "控制早死风险需要明确禁止无信息 50/50。",
+      "failure_if_absent": "缺了落地和中期会频繁赌命。",
+      "proof_or_action": "14 名前不接无信息 50/50 团。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "rp-top5-plan",
+      "child_id": "top5-route-drill",
+      "parent_needs_child": "进前 5 路线需要具体跳点路线脚本。",
+      "failure_if_absent": "缺了每局转点全靠临场想。",
+      "proof_or_action": "每个跳点练 3 条路线。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "aim-duel-baseline",
+      "child_id": "aim-block",
+      "parent_needs_child": "对枪基线需要固定枪法块维持。",
+      "failure_if_absent": "缺了团战计划再好也打不出伤害。",
+      "proof_or_action": "每天 20 分钟近中距离训练。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "teamfight-sequence",
+      "child_id": "focus-fire-drill",
+      "parent_needs_child": "团战顺序需要集火补枪训练。",
+      "failure_if_absent": "缺了优势无法扩大，容易被反打。",
+      "proof_or_action": "练先手破甲后的集火。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "rotation-map",
+      "child_id": "map-script-review",
+      "parent_needs_child": "转点脚本需要地图复盘落地。",
+      "failure_if_absent": "缺了只知道原则，不知道具体走哪里。",
+      "proof_or_action": "每张图 3 个安全转点和 3 个禁走点。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "endgame-space",
+      "child_id": "ring4-space-drill",
+      "parent_needs_child": "终局空间处理需要第 4 圈前的抢位训练。",
+      "failure_if_absent": "缺了会等圈刷完才发现没位置。",
+      "proof_or_action": "练第 4 圈前抢边/卡边/换位。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "roles-composition",
+      "child_id": "legend-pool-lock",
+      "parent_needs_child": "角色定位稳定需要锁定传奇池。",
+      "failure_if_absent": "缺了打法切换太多，训练不能积累。",
+      "proof_or_action": "30 场内不随机换主定位。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "comms-protocol",
+      "child_id": "five-word-comms",
+      "parent_needs_child": "可执行沟通需要固定信息类型。",
+      "failure_if_absent": "缺了团战语音会变成情绪和废话。",
+      "proof_or_action": "只报血量、位置、技能、目标、撤退。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "death-taxonomy",
+      "child_id": "death-log",
+      "parent_needs_child": "死亡分类需要具体记录材料。",
+      "failure_if_absent": "缺了复盘会凭印象漂移。",
+      "proof_or_action": "每晚记录 5 次死亡的第一原因。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    },
+    {
+      "parent_id": "weekly-block",
+      "child_id": "one-weakness-week",
+      "parent_needs_child": "窄训练块需要一周只追一个弱点。",
+      "failure_if_absent": "缺了训练没有可验证变化。",
+      "proof_or_action": "一周只练一个主弱点。",
+      "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}
+    }
+  ],
+  "weakest_gap": "如果你当前不是稳定钻石，最大缺口通常不是某个花活，而是 RP 模型、早死控制和团战顺序没有稳定。",
+  "next_action": "先用 2 周建立日志：50 场 ranked 记录净 RP、名次、击杀参与、死亡原因、前 5 路线是否执行；同时每天 20 分钟枪法 + 每晚 5 次死亡复盘。",
+  "residual_risk": "当前建议不知道你的平台、段位、输入设备、单排/三排、主玩传奇和日均游戏时间；这些会改变训练优先级。"
+}

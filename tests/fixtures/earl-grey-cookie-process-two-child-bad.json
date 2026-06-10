@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.1",
+  "mode": "focused",
+  "user_request": "我想做伯爵红茶饼干，要怎么做？",
+  "root_framing": {
+    "raw_user_ask": "我想做伯爵红茶饼干，要怎么做？",
+    "selected_root_outcome": "做出伯爵红茶饼干",
+    "root_admission": "用户目标是做出伯爵红茶饼干成品，不只是列配方。",
+    "domain_fit": "这是烘焙成品问题，需要用茶香和口感判断。",
+    "proof_standard_reason": "证明标准应该验证伯爵红茶饼干是否成立。",
+    "boundary": "不把旧树或任意饼干配方当成 root。",
+    "misread_risk": "如果定根太泛，会忽略伯爵茶香和口感。",
+    "clarification_needed": false,
+    "clarification_question": ""
+  },
+  "root_outcome": "做出伯爵红茶饼干",
+  "domain": "Baking",
+  "domain_ruler": "看茶香和口感。",
+  "depth_target": 3,
+  "width_policy": {
+    "min_children_per_parent": 5,
+    "max_children_per_parent": 5,
+    "max_total_nodes": 80,
+    "under_min_strategy": "add_unresolved_slots",
+    "overflow_strategy": "expand_weakest_branches_first"
+  },
+  "proof_standard": ["茶香明显。"],
+  "nodes": [
+    {"id": "root", "layer": 1, "result": "做出伯爵红茶饼干", "parent_id": null, "is_leaf": false, "proof_check": "成品有茶香。"},
+    {"id": "aroma", "layer": 2, "result": "茶香明显", "parent_id": "root", "is_leaf": true, "leaf_reason": "directly actionable", "proof_check": "闻得到茶香。"},
+    {"id": "texture", "layer": 2, "result": "口感酥", "parent_id": "root", "is_leaf": true, "leaf_reason": "directly actionable", "proof_check": "吃起来酥。"}
+  ],
+  "edges": [
+    {"parent_id": "root", "child_id": "aroma", "parent_needs_child": "伯爵饼干需要茶香。", "failure_if_absent": "缺了就是普通饼干。", "proof_or_action": "加茶叶。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}},
+    {"parent_id": "root", "child_id": "texture", "parent_needs_child": "饼干需要口感酥。", "failure_if_absent": "缺了会变硬或发韧，口感验收失败。", "proof_or_action": "控制面粉。", "child_admission": {"direct_condition": true, "mechanism_not_label": true, "proof_named": true}}
+  ],
+  "next_action": "做配方。",
+  "residual_risk": "信息不足。"
+}
