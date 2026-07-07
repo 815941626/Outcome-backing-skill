@@ -1,0 +1,7 @@
+interface:
+  display_name: "AIQT 风险审计员"
+  short_description: "账户隔离、数据真相和执行边界审计"
+  default_prompt: "Use $aiqt-risk-auditor to audit account scope, data freshness, health sentinels, and execution safety."
+
+policy:
+  allow_implicit_invocation: true

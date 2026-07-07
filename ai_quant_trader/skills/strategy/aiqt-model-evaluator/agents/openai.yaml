@@ -1,0 +1,7 @@
+interface:
+  display_name: "AIQT 模型评估师"
+  short_description: "从赚钱目标评估系统、方案和假设"
+  default_prompt: "Use $aiqt-model-evaluator to judge whether this system change improves risk-adjusted returns."
+
+policy:
+  allow_implicit_invocation: true

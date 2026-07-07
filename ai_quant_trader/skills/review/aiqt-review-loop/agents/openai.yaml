@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIQT Review Loop"
+  short_description: "Guide AI Quant Trader closed-loop post-market reviews."
+  default_prompt: "Use AIQT Review Loop to review today's trading evidence and produce a closed-loop attribution report."

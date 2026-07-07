@@ -1,0 +1,3 @@
+display_name: "AIQT Hot Path Discipline"
+short_description: "Keep AIQT work on trading action."
+default_prompt: "Apply hot-path discipline to this AIQT change."

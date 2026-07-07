@@ -1,0 +1,3 @@
+display_name: "AIQT Engineering Scale Guard"
+short_description: "Choose durable AIQT implementation scale."
+default_prompt: "Apply engineering-scale guardrails to this AIQT design."

@@ -1,0 +1,3 @@
+display_name: "AIQT Evidence First Debugger"
+short_description: "Verify before explaining AIQT failures."
+default_prompt: "Use evidence-first debugging for this AIQT incident."

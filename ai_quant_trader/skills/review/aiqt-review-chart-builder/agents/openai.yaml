@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIQT Review Chart Builder"
+  short_description: "Build modular AIQT review charts"
+  default_prompt: "Use $aiqt-review-chart-builder to design a modular review chart with frozen expectations, stored snapshots, and outcome checks."

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AIQT 战略员"
+  short_description: "盘前战略锚、剧本一致性和市场打法守门"
+  default_prompt: "Use $aiqt-strategist to assess today strategic anchor and morning briefing boundaries."
+
+policy:
+  allow_implicit_invocation: true
